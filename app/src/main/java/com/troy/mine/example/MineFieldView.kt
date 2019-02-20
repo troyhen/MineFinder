@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.view.ViewCompat
 import com.troy.mine.R
+import kotlin.random.Random
 
 open class MineFieldView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : InteractiveView(context, attrs, defStyle) {
 
@@ -64,6 +65,10 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     private val circlePaint = Paint()
     private val textPaint = Paint()
 
+    private var cells = emptyList<Cell>()
+    private var columns = 0
+    private var rows = 0
+
     init {
         maxViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
         currentViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
@@ -89,6 +94,69 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         }
 
         initPaints()
+        reset(COLUMNS, ROWS, MINES)
+    }
+
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+
+        // Clips the next few drawing operations to the content area
+        val clipRestoreCount = canvas.save()
+        canvas.clipRect(contentRect)
+
+        drawCircles(canvas)
+
+        drawEdgeEffectsUnclipped(canvas)
+
+        // Removes clipping rectangle
+        canvas.restoreToCount(clipRestoreCount)
+
+        // Draws chart container
+        canvas.drawRect(contentRect, mAxisPaint)
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val minChartSize = resources.getDimensionPixelSize(R.dimen.min_chart_size)
+        setMeasuredDimension(
+            Math.max(suggestedMinimumWidth, View.resolveSize(minChartSize + paddingLeft + maxLabelWidth + labelSeparation + paddingRight, widthMeasureSpec)),
+            Math.max(suggestedMinimumHeight, View.resolveSize(minChartSize + paddingTop + labelHeight + labelSeparation + paddingBottom, heightMeasureSpec))
+        )
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        contentRect.set(
+            paddingLeft + maxLabelWidth + labelSeparation,
+            paddingTop,
+            width - paddingRight,
+            height - paddingBottom - labelHeight - labelSeparation
+        )
+    }
+
+    fun reset(columns: Int, rows: Int, mines: Int) {
+        this.columns = columns
+        this.rows = rows
+        val size = columns * rows
+        cells = MutableList(size) { index ->
+            val column = index % columns
+            val row = index / columns
+            Cell(column, row)
+        }
+        for (i in 1..mines) {
+            val index = Random.nextInt(size)
+            val cell = cells[index]
+            if (cell.hasMine) continue
+            cell.hasMine = true
+        }
+        for (i in 0 until size) {
+            val column = i % columns
+            val row = i / columns
+            val shift = 1 - row % 2
+            val cell = cells[i]
+            cell.neighborMines = count(column - shift, row + 1) + count(column + 1 - shift, row + 1) +
+                    count(column - 1, row) + count(column + 1, row) +
+                    count(column - shift, row - 1) + count(column + 1 - shift, row - 1)
+        }
     }
 
     /**
@@ -119,46 +187,11 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         textPaint.textAlign = Paint.Align.CENTER
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        contentRect.set(
-            paddingLeft + maxLabelWidth + labelSeparation,
-            paddingTop,
-            width - paddingRight,
-            height - paddingBottom - labelHeight - labelSeparation
-        )
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val minChartSize = resources.getDimensionPixelSize(R.dimen.min_chart_size)
-        setMeasuredDimension(
-            Math.max(suggestedMinimumWidth, View.resolveSize(minChartSize + paddingLeft + maxLabelWidth + labelSeparation + paddingRight, widthMeasureSpec)),
-            Math.max(suggestedMinimumHeight, View.resolveSize(minChartSize + paddingTop + labelHeight + labelSeparation + paddingBottom, heightMeasureSpec))
-        )
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //     Methods and objects related to drawing
-    //
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-
-        // Clips the next few drawing operations to the content area
-        val clipRestoreCount = canvas.save()
-        canvas.clipRect(contentRect)
-
-        drawCircles(canvas)
-
-        drawEdgeEffectsUnclipped(canvas)
-
-        // Removes clipping rectangle
-        canvas.restoreToCount(clipRestoreCount)
-
-        // Draws chart container
-        canvas.drawRect(contentRect, mAxisPaint)
+    private fun count(column: Int, row: Int): Int {
+        if (column < 0 || column >= columns || row < 0 || row >= rows) return 0
+        val index = column + row * columns
+        val cell = cells[index]
+        return if (cell.hasMine) 1 else 0
     }
 
     private fun drawCircles(canvas: Canvas) {
@@ -171,14 +204,22 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         val xSpace2 = xSpace / 2
         val ySpace = CELL * .95f
         textPaint.textSize = textSize
-        for (y in 0 until ROWS) {
+        for (y in 0 until rows) {
             val yc = getDrawY(y * ySpace + SHIFT)
             val yt = yc + textShift
             val xoffset = SHIFT + if (y % 2 == 0) 0f else xSpace2
-            for (x in 0 until COLUMNS) {
+            for (x in 0 until columns) {
                 val xc = getDrawX(x * xSpace + xoffset)
+                val index = y * columns + x
+                val cell = cells[index]
                 canvas.drawCircle(xc, yc, radius, circlePaint)
-                canvas.drawText("6", xc, yt, textPaint)
+                val text = when {
+                    cell.hasMine -> "💣"
+                    cell.isMarked -> "\uD83C\uDFF4"
+                    cell.neighborMines == 0 -> ""
+                    else -> cell.neighborMines.toString()
+                }
+                canvas.drawText(text, xc, yt, textPaint)
             }
         }
     }
@@ -192,9 +233,12 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
         private const val COLUMNS = 13
         private const val ROWS = 30
+        private const val MINES = 30
 
         private const val CELL = (AXIS_Y_MAX - AXIS_Y_MIN) / ROWS
         private const val TEXT_SIZE = CELL * .8f
         private const val SHIFT = CELL
     }
+
+    data class Cell(val column: Int, val row: Int, var hasMine: Boolean = false, var neighborMines: Int = 0, var isRevealed: Boolean = false, var isMarked: Boolean = false)
 }
