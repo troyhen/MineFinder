@@ -62,7 +62,8 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     private val mGridPaint = Paint()
     private val mAxisPaint = Paint()
     private val mDataPaint = Paint()
-    private val circlePaint = Paint()
+    private val coverPaint = Paint()
+    private val revealPaint = Paint()
     private val textPaint = Paint()
 
     private var cells = emptyList<Cell>()
@@ -140,7 +141,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         cells = MutableList(size) { index ->
             val column = index % columns
             val row = index / columns
-            Cell(column, row)
+            Cell(column, row, isRevealed = Random.nextBoolean())
         }
         for (i in 1..mines) {
             val index = Random.nextInt(size)
@@ -182,8 +183,10 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         mDataPaint.style = Paint.Style.STROKE
         mDataPaint.isAntiAlias = true
 
-        circlePaint.color = 0xFF10E010.toInt()
-        textPaint.color = Color.WHITE
+        coverPaint.color = 0xFF10E010.toInt()
+        revealPaint.color = Color.BLACK
+        revealPaint.style = Paint.Style.STROKE
+        textPaint.color = Color.BLUE
         textPaint.textAlign = Paint.Align.CENTER
     }
 
@@ -212,14 +215,18 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                 val xc = getDrawX(x * xSpace + xoffset)
                 val index = y * columns + x
                 val cell = cells[index]
-                canvas.drawCircle(xc, yc, radius, circlePaint)
-                val text = when {
-                    cell.hasMine -> "💣"
-                    cell.isMarked -> "\uD83C\uDFF4"
-                    cell.neighborMines == 0 -> ""
-                    else -> cell.neighborMines.toString()
+                if (!cell.isRevealed) {
+                    canvas.drawCircle(xc, yc, radius, coverPaint)
+                } else {
+                    canvas.drawCircle(xc, yc, radius, revealPaint)
+                    val text = when {
+                        cell.isMarked -> "\uD83D\uDEA9"
+                        cell.hasMine -> "💣"
+                        cell.neighborMines == 0 -> ""
+                        else -> cell.neighborMines.toString()
+                    }
+                    canvas.drawText(text, xc, yt, textPaint)
                 }
-                canvas.drawText(text, xc, yt, textPaint)
             }
         }
     }
