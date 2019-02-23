@@ -260,11 +260,17 @@ open class InteractiveView @JvmOverloads constructor(context: Context, attrs: At
             return true
         }
 
+        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+            return onClick(e)
+        }
+
         override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             fling(-velocityX.toInt(), -velocityY.toInt())
             return true
         }
     })
+
+    open fun onClick(e: MotionEvent): Boolean = false
 
     /**
      * Ensures that current viewport is inside the viewport extremes defined by [.maxViewport.left],

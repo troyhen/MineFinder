@@ -6,9 +6,12 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
 import com.troy.mine.R
+import timber.log.Timber
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 open class MineFieldView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : InteractiveView(context, attrs, defStyle) {
@@ -98,6 +101,26 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         reset(COLUMNS, ROWS, MINES)
     }
 
+    override fun onClick(e: MotionEvent): Boolean {
+        return if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
+            var shortest = Float.MAX_VALUE
+            var cell: Cell? = null
+            cells.forEach {
+                val dx = it.x - e.x
+                val dy = it.y - e.y
+                val distance = dx * dx + dy * dy
+                if (distance < shortest) {
+                    shortest = distance
+                    cell = it
+                }
+            }
+            clickCell(cell)
+        } else {
+            super.onClick(e)
+
+        }
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -141,7 +164,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         cells = MutableList(size) { index ->
             val column = index % columns
             val row = index / columns
-            Cell(column, row, isRevealed = Random.nextBoolean())
+            Cell(column, row)
         }
         for (i in 1..mines) {
             val index = Random.nextInt(size)
@@ -190,6 +213,13 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         textPaint.textAlign = Paint.Align.CENTER
     }
 
+    private fun clickCell(cell: Cell?): Boolean {
+        Timber.d("cell $cell")
+        cell?.isRevealed = cell?.isRevealed == false
+        invalidate()
+        return true
+    }
+
     private fun count(column: Int, row: Int): Int {
         if (column < 0 || column >= columns || row < 0 || row >= rows) return 0
         val index = column + row * columns
@@ -216,6 +246,8 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                 val xc = getDrawX(x * xSpace + xoffset)
                 val index = y * columns + x
                 val cell = cells[index]
+                cell.x = xc
+                cell.y = yc
                 if (!cell.isRevealed) {
                     canvas.drawCircle(xc, yc, radius, coverPaint)
                 } else {
@@ -248,5 +280,14 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         private const val SHIFT = CELL
     }
 
-    data class Cell(val column: Int, val row: Int, var hasMine: Boolean = false, var neighborMines: Int = 0, var isRevealed: Boolean = false, var isMarked: Boolean = false)
+    data class Cell(
+        val column: Int,
+        val row: Int,
+        var hasMine: Boolean = false,
+        var neighborMines: Int = 0,
+        var isRevealed: Boolean = false,
+        var isMarked: Boolean = false,
+        var x: Float = 0f,
+        var y: Float = 0f
+    )
 }
