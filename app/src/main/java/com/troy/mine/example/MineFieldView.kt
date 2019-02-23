@@ -207,6 +207,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         val xSpace2 = xSpace / 2
         val ySpace = CELL * .95f
         textPaint.textSize = textSize
+        revealPaint.strokeWidth = zoom * 2
         for (y in 0 until rows) {
             val yc = getDrawY(y * ySpace + SHIFT)
             val yt = yc + textShift
