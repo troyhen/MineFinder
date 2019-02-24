@@ -293,7 +293,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     private suspend fun revealZeros(cell: Cell) {
         var first = cell
         val list = mutableSetOf<Cell>()
-        while (true) {
+        loop@ while (true) {
             val column = first.column
             val row = first.row
             val above = row - 1
@@ -301,18 +301,20 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
             val shift = 1 - row % 2
             val left = column - shift
             val right = left + 1
-            getCell(left, above)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
-            getCell(right, above)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
-            getCell(column - 1, row)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
-            getCell(column + 1, row)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
-            getCell(left, below)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
-            getCell(right, below)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
-            if (list.isEmpty()) break
-            first = list.first()
-            list.remove(first)
-            first.isRevealed = true
-            invalidate()
-            delay(1)
+            getCell(left, above)?.takeIf { !it.isRevealed }?.let { list.add(it) }
+            getCell(right, above)?.takeIf { !it.isRevealed }?.let { list.add(it) }
+            getCell(column - 1, row)?.takeIf { !it.isRevealed }?.let { list.add(it) }
+            getCell(column + 1, row)?.takeIf { !it.isRevealed }?.let { list.add(it) }
+            getCell(left, below)?.takeIf { !it.isRevealed }?.let { list.add(it) }
+            getCell(right, below)?.takeIf { !it.isRevealed }?.let { list.add(it) }
+            do {
+                if (list.isEmpty()) break@loop
+                first = list.first()
+                list.remove(first)
+                first.isRevealed = true
+                invalidate()
+                delay(1)
+            } while (first.neighborMines > 0)
         }
     }
 
@@ -320,7 +322,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         cell ?: return false
         cell.isRevealed = !cell.isRevealed
         invalidate()
-        if (cell.isRevealed && cell.neighborMines == 0) {
+        if (cell.isRevealed && cell.neighborMines == 0 && !cell.hasMine) {
             GlobalScope.launch { revealZeros(cell) }
         }
         return true
