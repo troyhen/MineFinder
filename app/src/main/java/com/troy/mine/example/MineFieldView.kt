@@ -10,6 +10,9 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
 import com.troy.mine.R
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -174,11 +177,15 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         for (i in 0 until size) {
             val column = i % columns
             val row = i / columns
+            val above = row - 1
+            val below = row + 1
             val shift = 1 - row % 2
+            val left = column - shift
+            val right = left + 1
             val cell = cells[i]
-            cell.neighborMines = count(column - shift, row + 1) + count(column + 1 - shift, row + 1) +
+            cell.neighborMines = count(left, above) + count(right, above) +
                     count(column - 1, row) + count(column + 1, row) +
-                    count(column - shift, row - 1) + count(column + 1 - shift, row - 1)
+                    count(left, below) + count(right, below)
         }
     }
 
@@ -213,9 +220,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
 
     private fun count(column: Int, row: Int): Int {
-        if (column < 0 || column >= columns || row < 0 || row >= rows) return 0
-        val index = column + row * columns
-        val cell = cells[index]
+        val cell = getCell(column, row) ?: return 0
         return if (cell.hasMine) 1 else 0
     }
 
@@ -272,6 +277,12 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         return cell
     }
 
+    private fun getCell(column: Int, row: Int): Cell? {
+        if (column < 0 || column >= columns || row < 0 || row >= rows) return null
+        val index = column + row * columns
+        return cells[index]
+    }
+
     private fun markCell(cell: Cell?) {
         cell ?: return
         Timber.d("cell $cell")
@@ -279,11 +290,39 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         invalidate()
     }
 
+    private suspend fun revealZeros(cell: Cell) {
+        var first = cell
+        val list = mutableSetOf<Cell>()
+        while (true) {
+            val column = first.column
+            val row = first.row
+            val above = row - 1
+            val below = row + 1
+            val shift = 1 - row % 2
+            val left = column - shift
+            val right = left + 1
+            getCell(left, above)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
+            getCell(right, above)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
+            getCell(column - 1, row)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
+            getCell(column + 1, row)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
+            getCell(left, below)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
+            getCell(right, below)?.takeIf { !it.isRevealed && it.neighborMines == 0 }?.let { list.add(it) }
+            if (list.isEmpty()) break
+            first = list.first()
+            list.remove(first)
+            first.isRevealed = true
+            invalidate()
+            delay(1)
+        }
+    }
+
     private fun toggleCell(cell: Cell?): Boolean {
         cell ?: return false
-        Timber.d("cell $cell")
         cell.isRevealed = !cell.isRevealed
         invalidate()
+        if (cell.isRevealed && cell.neighborMines == 0) {
+            GlobalScope.launch { revealZeros(cell) }
+        }
         return true
     }
 
@@ -305,12 +344,13 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
     data class Cell(
         val column: Int,
-        val row: Int,
-        var hasMine: Boolean = false,
-        var neighborMines: Int = 0,
-        var isRevealed: Boolean = false,
-        var isMarked: Boolean = false,
-        var x: Float = 0f,
+        val row: Int
+    ) {
+        var hasMine: Boolean = false
+        var neighborMines: Int = 0
+        var isRevealed: Boolean = false
+        var isMarked: Boolean = false
+        var x: Float = 0f
         var y: Float = 0f
-    )
+    }
 }
