@@ -103,18 +103,8 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
     override fun onClick(e: MotionEvent): Boolean {
         return if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
-            var shortest = Float.MAX_VALUE
-            var cell: Cell? = null
-            cells.forEach {
-                val dx = it.x - e.x
-                val dy = it.y - e.y
-                val distance = dx * dx + dy * dy
-                if (distance < shortest) {
-                    shortest = distance
-                    cell = it
-                }
-            }
-            clickCell(cell)
+            val cell = findNearest(e.x, e.y)
+            toggleCell(cell)
         } else {
             super.onClick(e)
 
@@ -137,6 +127,15 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
         // Draws chart container
         canvas.drawRect(contentRect, mAxisPaint)
+    }
+
+    override fun onLongClick(e: MotionEvent) {
+        if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
+            val cell = findNearest(e.x, e.y)
+            markCell(cell)
+        } else {
+            super.onLongClick(e)
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -213,13 +212,6 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         textPaint.textAlign = Paint.Align.CENTER
     }
 
-    private fun clickCell(cell: Cell?): Boolean {
-        Timber.d("cell $cell")
-        cell?.isRevealed = cell?.isRevealed == false
-        invalidate()
-        return true
-    }
-
     private fun count(column: Int, row: Int): Int {
         if (column < 0 || column >= columns || row < 0 || row >= rows) return 0
         val index = column + row * columns
@@ -252,16 +244,47 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                     canvas.drawCircle(xc, yc, radius, coverPaint)
                 } else {
                     canvas.drawCircle(xc, yc, radius, revealPaint)
-                    val text = when {
-                        cell.isMarked -> "\uD83D\uDEA9"
-                        cell.hasMine -> "💣"
-                        cell.neighborMines == 0 -> ""
-                        else -> cell.neighborMines.toString()
-                    }
-                    canvas.drawText(text, xc, yt, textPaint)
                 }
+                val text = when {
+                    cell.isMarked -> "\uD83D\uDEA9"
+                    !cell.isRevealed -> ""
+                    cell.hasMine -> "💣"
+                    cell.neighborMines == 0 -> ""
+                    else -> cell.neighborMines.toString()
+                }
+                canvas.drawText(text, xc, yt, textPaint)
             }
         }
+    }
+
+    private fun findNearest(x: Float, y: Float): Cell? {
+        var shortest = Float.MAX_VALUE
+        var cell: Cell? = null
+        cells.forEach {
+            val dx = it.x - x
+            val dy = it.y - y
+            val distance = dx * dx + dy * dy
+            if (distance < shortest) {
+                shortest = distance
+                cell = it
+            }
+        }
+        return cell
+    }
+
+    private fun markCell(cell: Cell?) {
+        cell ?: return
+        Timber.d("cell $cell")
+        cell.isMarked = !cell.isMarked
+        invalidate()
+    }
+
+    private fun toggleCell(cell: Cell?): Boolean {
+        cell ?: return false
+        Timber.d("cell $cell")
+        cell.isRevealed = !cell.isRevealed
+        invalidate()
+        return true
     }
 
     companion object {

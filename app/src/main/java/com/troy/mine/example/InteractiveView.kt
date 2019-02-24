@@ -260,9 +260,9 @@ open class InteractiveView @JvmOverloads constructor(context: Context, attrs: At
             return true
         }
 
-        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-            return onClick(e)
-        }
+        override fun onLongPress(e: MotionEvent) = onLongClick(e)
+
+        override fun onSingleTapConfirmed(e: MotionEvent) = onClick(e)
 
         override fun onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
             fling(-velocityX.toInt(), -velocityY.toInt())
@@ -271,6 +271,9 @@ open class InteractiveView @JvmOverloads constructor(context: Context, attrs: At
     })
 
     open fun onClick(e: MotionEvent): Boolean = false
+
+    open fun onLongClick(e: MotionEvent) {
+    }
 
     /**
      * Ensures that current viewport is inside the viewport extremes defined by [.maxViewport.left],
