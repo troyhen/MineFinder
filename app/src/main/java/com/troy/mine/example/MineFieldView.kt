@@ -335,7 +335,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
         private const val COLUMNS = 13
         private const val ROWS = 30
-        private const val MINES = 30
+        private const val MINES = 80
 
         private const val CELL = (AXIS_Y_MAX - AXIS_Y_MIN) / ROWS
         private const val TEXT_SIZE = CELL * .8f
