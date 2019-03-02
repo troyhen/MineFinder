@@ -19,7 +19,7 @@ import kotlin.random.Random
 
 open class MineFieldView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : InteractiveView(context, attrs, defStyle) {
 
-    // Current attribute values and Paints.
+    var state: GameState = GameState.PLAY
 
     var labelSeparation = 0
     var labelTextSize = 0f
@@ -105,13 +105,15 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
 
     override fun onClick(e: MotionEvent): Boolean {
-        return if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
-            val cell = findNearest(e.x, e.y)
-            revealCell(cell)
-        } else {
-            super.onClick(e)
+        return if (state == GameState.PLAY) {
+            if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
+                val cell = findNearest(e.x, e.y)
+                revealCell(cell)
+            } else {
+                super.onClick(e)
 
-        }
+            }
+        } else false
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -133,11 +135,13 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
 
     override fun onLongClick(e: MotionEvent) {
-        if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
-            val cell = findNearest(e.x, e.y)
-            markCell(cell)
-        } else {
-            super.onLongClick(e)
+        if (state == GameState.PLAY) {
+            if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
+                val cell = findNearest(e.x, e.y)
+                markCell(cell)
+            } else {
+                super.onLongClick(e)
+            }
         }
     }
 
@@ -270,6 +274,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                 }
                 val text = when {
                     cell.isMarked -> "\uD83D\uDEA9"
+                    state == GameState.LOST && cell.hasMine -> "💣"
                     !cell.isRevealed -> ""
                     cell.hasMine -> "💣"
                     cell.neighborMines == 0 -> ""
@@ -320,6 +325,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
             if (cell.isRevealed && cell.neighborMines == 0 && !cell.hasMine) {
                 GlobalScope.launch { revealZeros(cell) }
             }
+            if (cell.hasMine) state = GameState.LOST
         }
         return true
     }
