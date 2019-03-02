@@ -107,7 +107,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     override fun onClick(e: MotionEvent): Boolean {
         return if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
             val cell = findNearest(e.x, e.y)
-            toggleCell(cell)
+            revealCell(cell)
         } else {
             super.onClick(e)
 
@@ -224,6 +224,24 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         return if (cell.hasMine) 1 else 0
     }
 
+    private fun countFlags(cell: Cell): Int {
+        val column = cell.column
+        val row = cell.row
+        val above = row - 1
+        val below = row + 1
+        val shift = 1 - row % 2
+        val left = column - shift
+        val right = left + 1
+        var count = 0
+        getCell(left, above)?.takeIf { it.isMarked }?.let { count++ }
+        getCell(right, above)?.takeIf { it.isMarked }?.let { count++ }
+        getCell(column - 1, row)?.takeIf { it.isMarked }?.let { count++ }
+        getCell(column + 1, row)?.takeIf { it.isMarked }?.let { count++ }
+        getCell(left, below)?.takeIf { it.isMarked }?.let { count++ }
+        getCell(right, below)?.takeIf { it.isMarked }?.let { count++ }
+        return count
+    }
+
     private fun drawCircles(canvas: Canvas) {
         val zoom = maxViewport.height() / currentViewport.height()
         val ratio = contentRect.height() / maxViewport.height()
@@ -290,6 +308,38 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         invalidate()
     }
 
+    private fun revealCell(cell: Cell?): Boolean {
+        cell ?: return false
+        if (cell.isRevealed) {
+            if (countFlags(cell) == cell.neighborMines) {
+                revealNeighbors(cell)
+            }
+        } else {
+            cell.isRevealed = true
+            invalidate()
+            if (cell.isRevealed && cell.neighborMines == 0 && !cell.hasMine) {
+                GlobalScope.launch { revealZeros(cell) }
+            }
+        }
+        return true
+    }
+
+    private fun revealNeighbors(cell: Cell) {
+        val column = cell.column
+        val row = cell.row
+        val above = row - 1
+        val below = row + 1
+        val shift = 1 - row % 2
+        val left = column - shift
+        val right = left + 1
+        getCell(left, above)?.takeIf { !it.isRevealed && !it.isMarked }?.let { revealCell(it) }
+        getCell(right, above)?.takeIf { !it.isRevealed && !it.isMarked }?.let { revealCell(it) }
+        getCell(column - 1, row)?.takeIf { !it.isRevealed && !it.isMarked }?.let { revealCell(it) }
+        getCell(column + 1, row)?.takeIf { !it.isRevealed && !it.isMarked }?.let { revealCell(it) }
+        getCell(left, below)?.takeIf { !it.isRevealed && !it.isMarked }?.let { revealCell(it) }
+        getCell(right, below)?.takeIf { !it.isRevealed && !it.isMarked }?.let { revealCell(it) }
+    }
+
     private suspend fun revealZeros(cell: Cell) {
         var first = cell
         val list = mutableSetOf<Cell>()
@@ -316,16 +366,6 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                 delay(1)
             } while (first.neighborMines > 0)
         }
-    }
-
-    private fun toggleCell(cell: Cell?): Boolean {
-        cell ?: return false
-        cell.isRevealed = !cell.isRevealed
-        invalidate()
-        if (cell.isRevealed && cell.neighborMines == 0 && !cell.hasMine) {
-            GlobalScope.launch { revealZeros(cell) }
-        }
-        return true
     }
 
     companion object {
