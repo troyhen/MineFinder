@@ -101,7 +101,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         }
 
         initPaints()
-        reset(COLUMNS, ROWS, MINES)
+        reset(COLUMNS, ROWS, MINES_MED)
     }
 
     override fun onClick(e: MotionEvent): Boolean {
@@ -383,7 +383,10 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
         private const val COLUMNS = 13
         private const val ROWS = 30
-        private const val MINES = 80
+        private val MINES_SQRT = Math.sqrt((COLUMNS * ROWS).toDouble())
+        private val MINES_EASY = (MINES_SQRT * 2).roundToInt()
+        private val MINES_MED = (MINES_SQRT * 3).roundToInt()
+        private val MINES_HARD = (MINES_SQRT * 4).roundToInt()
 
         private const val CELL = (AXIS_Y_MAX - AXIS_Y_MIN) / ROWS
         private const val TEXT_SIZE = CELL * .8f
