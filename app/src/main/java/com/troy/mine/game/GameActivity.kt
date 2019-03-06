@@ -23,14 +23,14 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import com.troy.mine.R
-import kotlinx.android.synthetic.main.activity_zoom.*
+import kotlinx.android.synthetic.main.activity_game.*
 
 class GameActivity : Activity() {
 //    private lateinit var mGraphView: InteractiveLineGraphView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_zoom)
+        setContentView(R.layout.activity_game)
 //        mGraphView = chart
     }
 

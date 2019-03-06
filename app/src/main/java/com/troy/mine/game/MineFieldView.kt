@@ -79,26 +79,6 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     init {
         maxViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
         currentViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
-        val a = context.theme.obtainStyledAttributes(
-            attrs, R.styleable.LineGraphView, defStyle, defStyle
-        )
-
-        try {
-            labelTextColor = a.getColor(R.styleable.LineGraphView_labelTextColor, labelTextColor)
-            labelTextSize = a.getDimension(R.styleable.LineGraphView_labelTextSize, labelTextSize)
-            labelSeparation = a.getDimensionPixelSize(R.styleable.LineGraphView_labelSeparation, labelSeparation)
-
-            gridThickness = a.getDimension(R.styleable.LineGraphView_gridThickness, gridThickness)
-            gridColor = a.getColor(R.styleable.LineGraphView_gridColor, gridColor)
-
-            axisThickness = a.getDimension(R.styleable.LineGraphView_axisThickness, axisThickness)
-            axisColor = a.getColor(R.styleable.LineGraphView_axisColor, axisColor)
-
-            dataThickness = a.getDimension(R.styleable.LineGraphView_dataThickness, dataThickness)
-            dataColor = a.getColor(R.styleable.LineGraphView_dataColor, dataColor)
-        } finally {
-            a.recycle()
-        }
 
         initPaints()
         reset(COLUMNS, ROWS, MINES_MED)
