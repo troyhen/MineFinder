@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.troy.mine.example
+package com.troy.mine.game
 
 import android.app.Activity
 import android.content.Context
@@ -25,7 +25,7 @@ import android.view.MenuItem
 import com.troy.mine.R
 import kotlinx.android.synthetic.main.activity_zoom.*
 
-class ZoomExampleActivity : Activity() {
+class GameActivity : Activity() {
 //    private lateinit var mGraphView: InteractiveLineGraphView
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +73,7 @@ class ZoomExampleActivity : Activity() {
 
     companion object {
         fun startActivity(context: Context) {
-            val intent = Intent(context, ZoomExampleActivity::class.java)
+            val intent = Intent(context, GameActivity::class.java)
             context.startActivity(intent)
         }
     }

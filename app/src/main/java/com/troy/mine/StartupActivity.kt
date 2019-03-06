@@ -4,14 +4,14 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.troy.mine.example.ZoomExampleActivity
+import com.troy.mine.game.GameActivity
 import kotlinx.android.synthetic.main.activity_fullscreen.*
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-class FullscreenActivity : AppCompatActivity() {
+class StartupActivity : AppCompatActivity() {
     private val mHideHandler = Handler()
     private val mHidePart2Runnable = Runnable {
         // Delayed removal of status and navigation bar
@@ -73,7 +73,7 @@ class FullscreenActivity : AppCompatActivity() {
     }
 
     private fun toggle() {
-        ZoomExampleActivity.startActivity(this)
+        GameActivity.startActivity(this)
 //        if (mVisible) {
 //            hide()
 //        } else {

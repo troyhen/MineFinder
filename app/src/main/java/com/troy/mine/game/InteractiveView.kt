@@ -1,4 +1,4 @@
-package com.troy.mine.example
+package com.troy.mine.game
 
 import android.content.Context
 import android.graphics.Canvas

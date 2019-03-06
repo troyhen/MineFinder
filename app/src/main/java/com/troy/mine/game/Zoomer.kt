@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.troy.mine.example
+package com.troy.mine.game
 
 import android.content.Context
 import android.os.SystemClock
