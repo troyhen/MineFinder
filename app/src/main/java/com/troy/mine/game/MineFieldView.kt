@@ -226,6 +226,21 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         return count
     }
 
+    private fun detectWin() {
+        var correctlyMarked = 0
+        var empty = 0
+        var mines = 0
+        var revealed = 0
+        cells.forEach { cell ->
+            if (cell.hasMine) mines++ else empty++
+            if (cell.isRevealed) revealed++
+            if (cell.isMarked && cell.hasMine) correctlyMarked++
+        }
+        if (correctlyMarked == mines && revealed == empty) {
+            state = GameState.WON
+        }
+    }
+
     private fun drawCircles(canvas: Canvas) {
         val zoom = maxViewport.height() / currentViewport.height()
         val ratio = contentRect.height() / maxViewport.height()
@@ -247,7 +262,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                 val cell = cells[index]
                 cell.x = xc
                 cell.y = yc
-                if (!cell.isRevealed) {
+                if (state != GameState.WON && !cell.isRevealed) {
                     canvas.drawCircle(xc, yc, radius, coverPaint)
                 } else {
                     canvas.drawCircle(xc, yc, radius, revealPaint)
@@ -290,6 +305,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         cell ?: return
         Timber.d("cell $cell")
         cell.isMarked = !cell.isMarked
+        detectWin()
         invalidate()
     }
 
@@ -307,6 +323,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
             }
             if (cell.hasMine) state = GameState.LOST
         }
+        detectWin()
         return true
     }
 
@@ -352,6 +369,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                 delay(1)
             } while (first.neighborMines > 0)
         }
+        detectWin()
     }
 
     companion object {
