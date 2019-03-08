@@ -1,10 +1,15 @@
 package com.troy.mine.game
 
+import android.annotation.TargetApi
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.VibrationEffect.DEFAULT_AMPLITUDE
+import android.os.Vibrator
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -17,6 +22,7 @@ import timber.log.Timber
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
+@TargetApi(Build.VERSION_CODES.O)
 open class MineFieldView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : InteractiveView(context, attrs, defStyle) {
 
     private var state: GameState = GameState.PLAY
@@ -82,6 +88,14 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
     private val window = RectF()
 
+    private val vibrationEffect: VibrationEffect? by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) VibrationEffect.createOneShot(
+            250,
+            DEFAULT_AMPLITUDE
+        ) else null
+    }
+    private val vibrator: Vibrator? by lazy { context.getSystemService(Vibrator::class.java) }
+
     init {
         maxViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
         currentViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
@@ -131,6 +145,12 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     override fun onLongClick(e: MotionEvent) {
         if (state == GameState.PLAY) {
             if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator?.vibrate(vibrationEffect!!)
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator?.vibrate(250L)
+                }
                 val cell = findNearest(e.x, e.y)
                 markCell(cell)
             } else {
