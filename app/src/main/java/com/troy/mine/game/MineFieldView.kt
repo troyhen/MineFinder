@@ -19,62 +19,68 @@ import kotlin.random.Random
 
 open class MineFieldView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : InteractiveView(context, attrs, defStyle) {
 
-    var state: GameState = GameState.PLAY
+    private var state: GameState = GameState.PLAY
+    private var mode: ClickMode = ClickMode.REVEAL
 
-    var labelSeparation = 0
-    var labelTextSize = 0f
+    private var labelSeparation = 0
+    private var labelTextSize = 0f
         set(value) {
             field = value
             initPaints()
             ViewCompat.postInvalidateOnAnimation(this)
         }
 
-    var labelTextColor = 0
+    private var labelTextColor = 0
         set(value) {
             field = value
             initPaints()
             ViewCompat.postInvalidateOnAnimation(this)
         }
-    var maxLabelWidth = 1
-    var labelHeight = 1
-    var gridThickness = 0f
+    private var maxLabelWidth = 1
+    private var labelHeight = 1
+    private var gridThickness = 0f
         set(value) {
             field = value
             initPaints()
             ViewCompat.postInvalidateOnAnimation(this)
         }
-    var gridColor = 0
+    private var gridColor = 0
         set(value) {
             field = value
             initPaints()
             ViewCompat.postInvalidateOnAnimation(this)
         }
-    var axisThickness = 0f
+    private var axisThickness = 0f
         set(value) {
             field = value
             initPaints()
             ViewCompat.postInvalidateOnAnimation(this)
         }
-    var axisColor = 0
+    private var axisColor = 0
         set(value) {
             field = value
             initPaints()
             ViewCompat.postInvalidateOnAnimation(this)
         }
-    var dataThickness = 0f
-    var dataColor = 0
+    private var dataThickness = 0f
+    private var dataColor = 0
 
     private val mLabelTextPaint = Paint()
     private val mGridPaint = Paint()
     private val mAxisPaint = Paint()
     private val mDataPaint = Paint()
-    private val coverPaint = Paint()
-    private val revealPaint = Paint()
+    private val coveredPaint = Paint()
+    private val revealedPaint = Paint()
     private val textPaint = Paint()
+    private val markPaint = Paint()
+    private val revealPaint = Paint()
+    private val windowPaint = Paint()
 
     private var cells = emptyList<Cell>()
     private var columns = 0
     private var rows = 0
+
+    private val window = RectF()
 
     init {
         maxViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
@@ -86,12 +92,19 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
     override fun onClick(e: MotionEvent): Boolean {
         return if (state == GameState.PLAY) {
-            if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
-                val cell = findNearest(e.x, e.y)
-                revealCell(cell)
-            } else {
-                super.onClick(e)
-
+            when {
+                window.contains(e.x, e.y) -> {
+                    toggleMode()
+                    true
+                }
+                contentRect.contains(e.x.roundToInt(), e.y.roundToInt()) -> {
+                    val cell = findNearest(e.x, e.y)
+                    when (mode) {
+                        ClickMode.MARK -> markCell(cell)
+                        ClickMode.REVEAL -> revealCell(cell)
+                    }
+                }
+                else -> super.onClick(e)
             }
         } else false
     }
@@ -112,6 +125,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
         // Draws chart container
         canvas.drawRect(contentRect, mAxisPaint)
+        drawWindow(canvas)
     }
 
     override fun onLongClick(e: MotionEvent) {
@@ -144,6 +158,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
 
     fun reset(columns: Int, rows: Int, mines: Int) {
+        mode = ClickMode.REVEAL
         this.columns = columns
         this.rows = rows
         val size = columns * rows
@@ -183,6 +198,8 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         labelHeight = Math.max(Math.abs(mLabelTextPaint.fontMetrics.top), 1f).toInt()
         maxLabelWidth = Math.max(mLabelTextPaint.measureText("0000"), 1f).toInt()
 
+        window.set(30f, 30f, 130f, 120f)
+
         mGridPaint.strokeWidth = gridThickness
         mGridPaint.color = gridColor
         mGridPaint.style = Paint.Style.STROKE
@@ -196,11 +213,19 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         mDataPaint.style = Paint.Style.STROKE
         mDataPaint.isAntiAlias = true
 
-        coverPaint.color = 0xFF10E010.toInt()
-        revealPaint.color = Color.BLACK
-        revealPaint.style = Paint.Style.STROKE
+        coveredPaint.color = 0xFF10E010.toInt()
+        revealedPaint.color = Color.BLACK
+        revealedPaint.style = Paint.Style.STROKE
         textPaint.color = Color.BLUE
         textPaint.textAlign = Paint.Align.CENTER
+
+        revealPaint.color = Color.WHITE
+        revealPaint.style = Paint.Style.FILL
+        markPaint.color = Color.YELLOW
+        markPaint.style = Paint.Style.FILL
+        windowPaint.color = Color.BLACK
+        windowPaint.style = Paint.Style.STROKE
+        windowPaint.strokeWidth = 4f
     }
 
     private fun count(column: Int, row: Int): Int {
@@ -263,7 +288,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                 cell.x = xc
                 cell.y = yc
                 if (state != GameState.WON && !cell.isRevealed) {
-                    canvas.drawCircle(xc, yc, radius, coverPaint)
+                    canvas.drawCircle(xc, yc, radius, coveredPaint)
                 } else {
                     canvas.drawCircle(xc, yc, radius, revealPaint)
                 }
@@ -278,6 +303,19 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                 canvas.drawText(text, xc, yt, textPaint)
             }
         }
+    }
+
+    private fun drawWindow(canvas: Canvas) {
+        canvas.drawRoundRect(
+            window,
+            20f,
+            20f,
+            if (mode == ClickMode.MARK) markPaint else revealPaint
+        )
+        canvas.drawRoundRect(window, 20f, 20f, windowPaint)
+        val x = window.centerX()
+        val y = window.top + window.height() * .8f
+        canvas.drawText("\uD83D\uDEA9", x, y, textPaint)
     }
 
     private fun findNearest(x: Float, y: Float): Cell? {
@@ -301,12 +339,13 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         return cells[index]
     }
 
-    private fun markCell(cell: Cell?) {
-        cell ?: return
+    private fun markCell(cell: Cell?): Boolean {
+        cell ?: return false
         Timber.d("cell $cell")
         cell.isMarked = !cell.isMarked
         detectWin()
         invalidate()
+        return true
     }
 
     private fun revealCell(cell: Cell?): Boolean {
@@ -370,6 +409,14 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
             } while (first.neighborMines > 0)
         }
         detectWin()
+    }
+
+    private fun toggleMode() {
+        mode = when (mode) {
+            ClickMode.REVEAL -> ClickMode.MARK
+            ClickMode.MARK -> ClickMode.REVEAL
+        }
+        invalidate()
     }
 
     companion object {
