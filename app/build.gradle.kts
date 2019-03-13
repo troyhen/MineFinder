@@ -25,15 +25,18 @@ android {
 }
 
 dependencies {
-    implementation(fileTree("libs" to arrayOf("*.jar")))
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7", KotlinCompilerVersion.VERSION)
+    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${KotlinCompilerVersion.VERSION}")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1")
+
     implementation("androidx.appcompat:appcompat:1.0.2")
     implementation("androidx.core:core-ktx:1.0.1")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("com.jakewharton.timber:timber:4.7.1")
+    implementation("org.koin:koin-android:2.0.0-beta-2")
+
     testImplementation("junit:junit:4.12")
     androidTestImplementation("androidx.test:runner:1.1.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.1.1")
-
 }
