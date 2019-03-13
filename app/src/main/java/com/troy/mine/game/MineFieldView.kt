@@ -100,7 +100,12 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
     init {
         maxViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
-        currentViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
+        currentViewport = RectF(
+            maxViewport.centerX() - maxViewport.width() / 4,
+            maxViewport.centerY() - maxViewport.height() / 4,
+            maxViewport.centerX() + maxViewport.width() / 4,
+            maxViewport.centerY() + maxViewport.height() / 4
+        )
 
         initPaints()
         reset(COLUMNS, ROWS, MINES_MED)
@@ -279,16 +284,16 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
 
     private fun detectWin() {
-        var correctlyMarked = 0
         var empty = 0
         var mines = 0
         var revealed = 0
+        var unrevealed = 0
         cells.forEach { cell ->
             if (cell.hasMine) mines++ else empty++
             if (cell.isRevealed) revealed++
-            if (cell.isMarked && cell.hasMine) correctlyMarked++
+            else if (cell.hasMine) unrevealed++
         }
-        if (correctlyMarked == mines && revealed == empty) {
+        if (unrevealed == mines && revealed == empty) {
             state = GameState.WON
         }
     }
