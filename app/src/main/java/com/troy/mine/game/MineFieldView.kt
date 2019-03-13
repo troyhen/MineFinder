@@ -15,9 +15,10 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
 import com.troy.mine.R
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -77,7 +78,8 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     private val mDataPaint = Paint()
     private val coveredPaint = Paint()
     private val revealedPaint = Paint()
-    private val textPaint = Paint()
+    private val normalTextPaint = Paint()
+    private val zoomedTextPaint = Paint()
     private val markPaint = Paint()
     private val revealPaint = Paint()
     private val windowPaint = Paint()
@@ -188,9 +190,11 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
             Cell(column, row)
         }
         for (i in 1..mines) {
-            val index = Random.nextInt(size)
-            val cell = cells[index]
-            if (cell.hasMine) continue
+            var cell: Cell
+            do {
+                val index = Random.nextInt(size)
+                cell = cells[index]
+            } while (cell.hasMine)
             cell.hasMine = true
         }
         for (i in 0 until size) {
@@ -236,8 +240,11 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         coveredPaint.color = 0xFF10E010.toInt()
         revealedPaint.color = Color.BLACK
         revealedPaint.style = Paint.Style.STROKE
-        textPaint.color = Color.BLUE
-        textPaint.textAlign = Paint.Align.CENTER
+        zoomedTextPaint.color = Color.BLUE
+        zoomedTextPaint.textAlign = Paint.Align.CENTER
+        normalTextPaint.color = Color.BLUE
+        normalTextPaint.textAlign = Paint.Align.CENTER
+        normalTextPaint.textSize = 18 * context.resources.displayMetrics.density
 
         revealPaint.color = Color.WHITE
         revealPaint.style = Paint.Style.FILL
@@ -295,7 +302,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         val xSpace = CELL * 1.09f
         val xSpace2 = xSpace / 2
         val ySpace = CELL * .95f
-        textPaint.textSize = textSize
+        zoomedTextPaint.textSize = textSize
         revealPaint.strokeWidth = zoom * 2
         for (y in 0 until rows) {
             val yc = getDrawY(y * ySpace + SHIFT)
@@ -320,7 +327,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                     cell.neighborMines == 0 -> ""
                     else -> cell.neighborMines.toString()
                 }
-                canvas.drawText(text, xc, yt, textPaint)
+                canvas.drawText(text, xc, yt, zoomedTextPaint)
             }
         }
     }
@@ -335,7 +342,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         canvas.drawRoundRect(window, 20f, 20f, windowPaint)
         val x = window.centerX()
         val y = window.top + window.height() * .8f
-        canvas.drawText("\uD83D\uDEA9", x, y, textPaint)
+        canvas.drawText("\uD83D\uDEA9", x, y, normalTextPaint)
     }
 
     private fun findNearest(x: Float, y: Float): Cell? {
@@ -424,8 +431,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                 first = list.first()
                 list.remove(first)
                 first.isRevealed = true
-                invalidate()
-                delay(1)
+                withContext(Main) { invalidate() }
             } while (first.neighborMines > 0)
         }
         detectWin()
