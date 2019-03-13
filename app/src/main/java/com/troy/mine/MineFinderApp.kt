@@ -18,7 +18,7 @@ class MineFinderApp : Application() {
             if (BuildConfig.DEBUG) {
                 androidLogger()
             }
-//            modules(appModule)
+            modules(appModule)
         }
     }
 }
