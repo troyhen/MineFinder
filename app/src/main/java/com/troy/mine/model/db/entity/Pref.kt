@@ -1,4 +1,4 @@
-package com.troy.mine.model.db
+package com.troy.mine.model.db.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

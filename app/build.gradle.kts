@@ -50,6 +50,7 @@ dependencies {
     kapt("androidx.room:room-compiler:$roomV")
     implementation("com.jakewharton.timber:timber:4.7.1")
     implementation("org.koin:koin-android:2.0.0-beta-2")
+    implementation("org.koin:koin-androidx-viewmodel:2.0.0-beta-2")
 
     testImplementation("junit:junit:4.12")
     testImplementation("androidx.room:room-testing:$roomV")
