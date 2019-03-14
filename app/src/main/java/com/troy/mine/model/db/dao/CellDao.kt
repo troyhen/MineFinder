@@ -6,6 +6,10 @@ import com.troy.mine.model.db.entity.Cell
 
 @Dao
 interface CellDao : BaseDao<Cell> {
+
+    @Query("delete from Cell")
+    fun deleteAll()
+
     @Query("select * from Cell order by `row`, `column`")
     fun findAll(): List<Cell>
 }

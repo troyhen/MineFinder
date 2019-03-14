@@ -1,6 +1,7 @@
 package com.troy.mine.game
 
 import androidx.lifecycle.ViewModel
+import com.troy.mine.model.db.MineDatabase
 import com.troy.mine.model.db.entity.Cell
 import com.troy.mine.util.SingleLiveEvent
 import kotlinx.coroutines.Dispatchers
@@ -10,7 +11,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.random.Random
 
-class GameViewModel : ViewModel() {
+class GameViewModel(private val db: MineDatabase) : ViewModel() {
 
     val redrawEvent = SingleLiveEvent<Void>()
 
@@ -44,7 +45,16 @@ class GameViewModel : ViewModel() {
         return true
     }
 
+    fun load() = GlobalScope.launch {
+        columns = db.prefDao.getInt("columns")
+        rows = db.prefDao.getInt("rows")
+        cells = db.cellDao.findAll()
+    }
+
     fun reset(columns: Int, rows: Int, mines: Int) {
+        GlobalScope.launch {
+            db.cellDao.deleteAll()
+        }
         mode = ClickMode.REVEAL
         this.columns = columns
         this.rows = rows
@@ -93,6 +103,16 @@ class GameViewModel : ViewModel() {
         }
         detectWin()
         return true
+    }
+
+    fun save() = GlobalScope.launch {
+        db.runInTransaction {
+            db.prefDao.put("columns", columns)
+            db.prefDao.put("rows", rows)
+            for (cell in cells) {
+                db.cellDao.save(cell)
+            }
+        }
     }
 
     fun toggleMode() {
