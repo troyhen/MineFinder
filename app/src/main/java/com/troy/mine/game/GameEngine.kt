@@ -1,6 +1,6 @@
 package com.troy.mine.game
 
-import androidx.lifecycle.ViewModel
+import androidx.annotation.AnyThread
 import com.troy.mine.model.db.MineDatabase
 import com.troy.mine.model.db.entity.Cell
 import com.troy.mine.util.SingleLiveEvent
@@ -11,12 +11,12 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.random.Random
 
-class GameViewModel(private val db: MineDatabase) : ViewModel() {
+class GameEngine(private val db: MineDatabase) {
 
-    val redrawEvent = SingleLiveEvent<Void>()
+    val updateEvent = SingleLiveEvent<Void>()
 
-    var state: GameState = GameState.PLAY
-    var mode: ClickMode = ClickMode.REVEAL
+    var state = GameState.PLAY
+    var mode = ClickMode.REVEAL
     var cells = emptyList<Cell>()
     var columns = 0
     var rows = 0
@@ -45,17 +45,33 @@ class GameViewModel(private val db: MineDatabase) : ViewModel() {
         return true
     }
 
+    @AnyThread
     fun load() = GlobalScope.launch {
-        columns = db.prefDao.getInt("columns")
-        rows = db.prefDao.getInt("rows")
+        columns = db.prefDao.getInt(COLUMNS)
+        rows = db.prefDao.getInt(ROWS)
+        mode = try {
+            ClickMode.valueOf(db.prefDao.getString(MODE))
+        } catch (e: Exception) {
+            ClickMode.REVEAL
+        }
+        state = try {
+            GameState.valueOf(db.prefDao.getString(STATE))
+        } catch (e: Exception) {
+            GameState.PLAY
+        }
         cells = db.cellDao.findAll()
     }
 
     fun reset(columns: Int, rows: Int, mines: Int) {
         GlobalScope.launch {
-            db.cellDao.deleteAll()
+            db.runInTransaction {
+                db.cellDao.deleteAll()
+                db.prefDao.put(COLUMNS, columns)
+                db.prefDao.put(ROWS, rows)
+            }
         }
         mode = ClickMode.REVEAL
+        state = GameState.PLAY
         this.columns = columns
         this.rows = rows
         val size = columns * rows
@@ -105,13 +121,14 @@ class GameViewModel(private val db: MineDatabase) : ViewModel() {
         return true
     }
 
+    @AnyThread
     fun save() = GlobalScope.launch {
         db.runInTransaction {
-            db.prefDao.put("columns", columns)
-            db.prefDao.put("rows", rows)
             for (cell in cells) {
                 db.cellDao.save(cell)
             }
+            db.prefDao.put(MODE, mode.name)
+            db.prefDao.put(STATE, state.name)
         }
     }
 
@@ -167,7 +184,7 @@ class GameViewModel(private val db: MineDatabase) : ViewModel() {
         return cells[index]
     }
 
-    private fun invalidate() = redrawEvent.postCall()
+    private fun invalidate() = updateEvent.postCall()
 
     private fun revealNeighbors(cell: Cell) {
         val column = cell.column
@@ -211,5 +228,12 @@ class GameViewModel(private val db: MineDatabase) : ViewModel() {
             } while (first.neighborMines > 0)
         }
         detectWin()
+    }
+
+    companion object {
+        private const val COLUMNS = "columns"
+        private const val ROWS = "rows"
+        private const val MODE = "mode"
+        private const val STATE = "state"
     }
 }

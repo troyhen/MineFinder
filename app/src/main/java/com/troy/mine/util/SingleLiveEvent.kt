@@ -1,6 +1,7 @@
 package com.troy.mine.util
 
 import androidx.annotation.MainThread
+import androidx.annotation.WorkerThread
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -21,30 +22,26 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 class SingleLiveEvent<T> : MutableLiveData<T>() {
 
-    private val mPending = AtomicBoolean(false)
+    private val pending = AtomicBoolean(false)
 
     @MainThread
     override fun observe(owner: LifecycleOwner, observer: Observer<in T>) {
         if (hasActiveObservers()) {
-            Timber.w("Multiple observers registered but only one will be notified of changes.")
+            // Generic type cannot be shown... place breakpoint here to debug
+            Timber.e("Multiple observers registered but only one will be notified of changes")
         }
 
         // Observe the internal MutableLiveData
         super.observe(owner, Observer<T> { t ->
-            if (mPending.compareAndSet(true, false)) {
+            if (pending.compareAndSet(true, false)) {
                 observer.onChanged(t)
             }
         })
     }
 
-    override fun postValue(t: T?) {
-        mPending.set(true)
-        super.postValue(t)
-    }
-
     @MainThread
     override fun setValue(t: T?) {
-        mPending.set(true)
+        pending.set(true)
         super.setValue(t)
     }
 
@@ -59,6 +56,7 @@ class SingleLiveEvent<T> : MutableLiveData<T>() {
     /**
      * Used for cases where T is Void, to make calls cleaner.
      */
+    @WorkerThread
     fun postCall() {
         postValue(null)
     }

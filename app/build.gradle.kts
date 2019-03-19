@@ -36,6 +36,7 @@ android {
 
 dependencies {
     val roomV = "2.1.0-alpha04"
+    val koinV = "2.0.0-beta-2"
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
@@ -49,8 +50,8 @@ dependencies {
     implementation("androidx.room:room-coroutines:$roomV")
     kapt("androidx.room:room-compiler:$roomV")
     implementation("com.jakewharton.timber:timber:4.7.1")
-    implementation("org.koin:koin-android:2.0.0-beta-2")
-    implementation("org.koin:koin-androidx-viewmodel:2.0.0-beta-2")
+//    implementation("org.koin:koin-android:$koinV")
+    implementation("org.koin:koin-androidx-viewmodel:$koinV")
 
     testImplementation("junit:junit:4.12")
     testImplementation("androidx.room:room-testing:$roomV")

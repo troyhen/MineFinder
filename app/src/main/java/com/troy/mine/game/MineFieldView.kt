@@ -15,9 +15,8 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
 import com.troy.mine.R
-import org.koin.androidx.viewmodel.ext.koin.viewModel
 import org.koin.core.KoinComponent
-import org.koin.core.get
+import org.koin.core.inject
 import kotlin.math.roundToInt
 
 @TargetApi(Build.VERSION_CODES.O)
@@ -88,7 +87,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
     private val vibrator: Vibrator? by lazy { context.getSystemService(Vibrator::class.java) }
 
-    private val viewModel: GameViewModel by viewModel(get())
+    private val gameEngine: GameEngine by inject()
 
     init {
         maxViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
@@ -100,21 +99,21 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         )
 
         initPaints()
-        viewModel.reset(COLUMNS, ROWS, MINES_MED)
+        gameEngine.reset(COLUMNS, ROWS, MINES_MED)
     }
 
     override fun onClick(e: MotionEvent): Boolean {
-        return if (viewModel.state == GameState.PLAY) {
+        return if (gameEngine.state == GameState.PLAY) {
             when {
                 window.contains(e.x, e.y) -> {
-                    viewModel.toggleMode()
+                    gameEngine.toggleMode()
                     true
                 }
                 contentRect.contains(e.x.roundToInt(), e.y.roundToInt()) -> {
-                    val cell = viewModel.findNearest(e.x, e.y)
-                    when (viewModel.mode) {
-                        ClickMode.MARK -> viewModel.markCell(cell)
-                        ClickMode.REVEAL -> viewModel.revealCell(cell)
+                    val cell = gameEngine.findNearest(e.x, e.y)
+                    when (gameEngine.mode) {
+                        ClickMode.MARK -> gameEngine.markCell(cell)
+                        ClickMode.REVEAL -> gameEngine.revealCell(cell)
                     }
                 }
                 else -> super.onClick(e)
@@ -142,7 +141,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
 
     override fun onLongClick(e: MotionEvent) {
-        if (viewModel.state == GameState.PLAY) {
+        if (gameEngine.state == GameState.PLAY) {
             if (contentRect.contains(e.x.roundToInt(), e.y.roundToInt())) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     vibrator?.vibrate(vibrationEffect!!)
@@ -150,8 +149,8 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                     @Suppress("DEPRECATION")
                     vibrator?.vibrate(250L)
                 }
-                val cell = viewModel.findNearest(e.x, e.y)
-                viewModel.markCell(cell)
+                val cell = gameEngine.findNearest(e.x, e.y)
+                gameEngine.markCell(cell)
             } else {
                 super.onLongClick(e)
             }
@@ -230,24 +229,24 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         val ySpace = CELL * .95f
         zoomedTextPaint.textSize = textSize
         revealPaint.strokeWidth = zoom * 2
-        for (y in 0 until viewModel.rows) {
+        for (y in 0 until gameEngine.rows) {
             val yc = getDrawY(y * ySpace + SHIFT)
             val yt = yc + textShift
             val xoffset = SHIFT + if (y % 2 == 0) 0f else xSpace2
-            for (x in 0 until viewModel.columns) {
+            for (x in 0 until gameEngine.columns) {
                 val xc = getDrawX(x * xSpace + xoffset)
-                val index = y * viewModel.columns + x
-                val cell = viewModel.cells[index]
+                val index = y * gameEngine.columns + x
+                val cell = gameEngine.cells[index]
                 cell.x = xc
                 cell.y = yc
-                if (viewModel.state != GameState.WON && !cell.isRevealed) {
+                if (gameEngine.state != GameState.WON && !cell.isRevealed) {
                     canvas.drawCircle(xc, yc, radius, coveredPaint)
                 } else {
                     canvas.drawCircle(xc, yc, radius, revealPaint)
                 }
                 val text = when {
                     cell.isMarked -> "\uD83D\uDEA9"
-                    viewModel.state == GameState.LOST && cell.hasMine -> "💣"
+                    gameEngine.state == GameState.LOST && cell.hasMine -> "💣"
                     !cell.isRevealed -> ""
                     cell.hasMine -> "💣"
                     cell.neighborMines == 0 -> ""
@@ -263,7 +262,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
             window,
             20f,
             20f,
-            if (viewModel.mode == ClickMode.MARK) markPaint else revealPaint
+            if (gameEngine.mode == ClickMode.MARK) markPaint else revealPaint
         )
         canvas.drawRoundRect(window, 20f, 20f, windowPaint)
         val x = window.centerX()
