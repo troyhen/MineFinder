@@ -1,4 +1,4 @@
-package com.troy.mine
+package com.troy.mine.app
 
 import androidx.room.Room
 import com.troy.mine.game.GameEngine

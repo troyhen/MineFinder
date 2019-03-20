@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.troy.mine.R
 import kotlinx.android.synthetic.main.activity_startup.*
 
-class StartupActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val hideHandler = Handler()
     private val hidePart2Runnable = Runnable {

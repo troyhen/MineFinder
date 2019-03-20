@@ -1,6 +1,8 @@
 <com.troy.mine.game.MineFieldView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/gameView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/gameBackground"
-    android:padding="@dimen/chart_padding" />
+    android:padding="@dimen/chart_padding"
+    tools:context=".game.GameFragment" />

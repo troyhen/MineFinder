@@ -7,7 +7,7 @@
     android:background="@color/homeBackground"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context=".game.StartupActivity">
+    tools:context=".game.SetupFragment">
 
     <TextView
         android:layout_width="wrap_content"
@@ -17,8 +17,9 @@
         android:textColor="@color/colorPrimary"
         android:textSize="24sp" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/resumeButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
@@ -65,8 +66,9 @@
             android:textColor="@color/colorPrimary" />
     </LinearLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/startButton"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"

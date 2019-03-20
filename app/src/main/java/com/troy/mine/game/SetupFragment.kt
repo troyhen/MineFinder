@@ -8,15 +8,15 @@ import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.troy.mine.R
-import kotlinx.android.synthetic.main.fragment_startup.*
+import kotlinx.android.synthetic.main.fragment_setup.*
 import org.koin.android.ext.android.inject
 import kotlin.math.roundToInt
 
-class StartupFragment : Fragment() {
+class SetupFragment : Fragment() {
 
     private val gameEngine: GameEngine by inject()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View = inflater.inflate(R.layout.fragment_startup, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View = inflater.inflate(R.layout.fragment_setup, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
