@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/startupFragment">
+
+    <fragment
+        android:id="@+id/startupFragment"
+        android:name="com.troy.mine.game.StartupFragment"
+        android:label="StartupFragment"
+        tools:layout="@layout/fragment_startup">
+        <action
+            android:id="@+id/action_startupFragment_to_gameFragment"
+            app:destination="@id/gameFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/gameFragment"
+        android:name="com.troy.mine.game.GameFragment"
+        android:label="GameFragment"
+        tools:layout="@layout/fragment_game" />
+</navigation>

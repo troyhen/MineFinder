@@ -109,8 +109,8 @@ class GameEngine(private val db: MineDatabase) {
         }
         val cx = columns * .5f
         val cy = rows * .5f
-        val w = StartupActivity.FieldSize.SMALL.columns.toFloat() / 2
-        val h = StartupActivity.FieldSize.SMALL.rows.toFloat() / 2
+        val w = StartupFragment.FieldSize.SMALL.columns.toFloat() / 2
+        val h = StartupFragment.FieldSize.SMALL.rows.toFloat() / 2
         viewport = RectF(cx - w, cy - h, cx + w, cy + h)
     }
 

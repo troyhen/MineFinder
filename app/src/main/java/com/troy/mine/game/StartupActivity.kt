@@ -3,16 +3,12 @@ package com.troy.mine.game
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
-import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import com.troy.mine.R
 import kotlinx.android.synthetic.main.activity_startup.*
-import org.koin.android.ext.android.inject
-import kotlin.math.roundToInt
 
 class StartupActivity : AppCompatActivity() {
 
-    private val gameEngine: GameEngine by inject()
     private val hideHandler = Handler()
     private val hidePart2Runnable = Runnable {
         contentLayout.systemUiVisibility =
@@ -49,14 +45,6 @@ class StartupActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         isSystemVisible = true
-        difficultySpinner.adapter = ArrayAdapter.createFromResource(this, R.array.difficulty, android.R.layout.simple_spinner_item).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        sizeSpinner.adapter = ArrayAdapter.createFromResource(this, R.array.fieldSize, android.R.layout.simple_spinner_item).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        }
-        resumeButton.setOnClickListener { resumeGame() }
-        startButton.setOnClickListener { startGame() }
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -66,18 +54,6 @@ class StartupActivity : AppCompatActivity() {
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100)
-    }
-
-    private fun resumeGame() {
-        GameActivity.startActivity(this)
-    }
-
-    private fun startGame() {
-        val difficulty = Difficulty.values()[difficultySpinner.selectedItemPosition]
-        val fieldSSize = FieldSize.values()[sizeSpinner.selectedItemPosition]
-        val mines = (Math.sqrt(fieldSSize.columns.toDouble() * fieldSSize.rows) * difficulty.scale).roundToInt()
-        gameEngine.reset(fieldSSize.columns, fieldSSize.rows, mines)
-        GameActivity.startActivity(this)
     }
 
     /**
@@ -128,13 +104,5 @@ class StartupActivity : AppCompatActivity() {
          * and a change of the status and navigation bar.
          */
         private const val UI_ANIMATION_DELAY = 300
-    }
-
-    enum class Difficulty(val scale: Float) {
-        EASY(2f), MEDIUM(3f), HARD(4f), CRAZY(5f)
-    }
-
-    enum class FieldSize(val columns: Int, val rows: Int) {
-        SMALL(6, 15), MEDIUM(12, 30), LARGE(18, 45), HUGE(24, 60)
     }
 }

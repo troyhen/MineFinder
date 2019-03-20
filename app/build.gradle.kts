@@ -5,6 +5,7 @@ plugins {
     id("kotlin-android")
     id("kotlin-android-extensions")
     kotlin("kapt")
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -37,6 +38,7 @@ android {
 dependencies {
     val roomV = "2.1.0-alpha04"
     val koinV = "2.0.0-beta-2"
+    val navV = "2.1.0-alpha01"
 
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 
@@ -46,6 +48,8 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.0.2")
     implementation("androidx.core:core-ktx:1.0.1")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    implementation("androidx.navigation:navigation-fragment-ktx:$navV")
+    implementation("androidx.navigation:navigation-ui-ktx:$navV")
     implementation("androidx.room:room-runtime:$roomV")
     implementation("androidx.room:room-coroutines:$roomV")
     kapt("androidx.room:room-compiler:$roomV")
