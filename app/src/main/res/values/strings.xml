@@ -21,5 +21,7 @@
         <item>Huge</item>
     </string-array>
     <string name="resumeGame">Resume Game</string>
-    <string name="startGame">Stare Game</string>
+    <string name="startGame">Start Game</string>
+    <string name="size">Size</string>
+    <string name="difficulty">Difficulty</string>
 </resources>

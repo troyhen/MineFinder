@@ -4,40 +4,73 @@
     android:id="@+id/contentLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0099cc"
+    android:background="@color/homeBackground"
+    android:gravity="center"
     android:orientation="vertical"
-    tools:context=".StartupActivity">
+    tools:context=".game.StartupActivity">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
         android:layout_marginTop="40dp"
-        android:text="@string/app_name" />
+        android:text="@string/app_name"
+        android:textColor="@color/colorPrimary"
+        android:textSize="24sp" />
 
     <Button
         android:id="@+id/resumeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:text="@string/resumeGame" />
+        android:text="@string/resumeGame"
+        android:textColor="@color/colorPrimary" />
 
-    <Spinner
-        android:id="@+id/sizeSpinner"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp" />
+        android:layout_marginTop="40dp"
+        android:orientation="horizontal">
 
-    <Spinner
-        android:id="@+id/difficultySpinner"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/size"
+            android:textColor="@color/colorPrimary" />
+
+        <Spinner
+            android:id="@+id/sizeSpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/colorPrimary" />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp" />
+        android:layout_marginTop="40dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/difficulty"
+            android:textColor="@color/colorPrimary" />
+
+        <Spinner
+            android:id="@+id/difficultySpinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textColor="@color/colorPrimary" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/startButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/startGame" />
+        android:layout_marginTop="40dp"
+        android:text="@string/startGame"
+        android:textColor="@color/colorPrimary" />
 
 </LinearLayout>

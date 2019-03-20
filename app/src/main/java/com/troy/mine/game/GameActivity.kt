@@ -20,6 +20,7 @@ class GameActivity : AppCompatActivity() {
         setContentView(R.layout.activity_game)
         if (savedInstanceState != null) {
             gameEngine.load()
+            gameView.currentViewport = gameEngine.viewport
         }
         setupObservers()
     }
@@ -33,27 +34,27 @@ class GameActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.action_zoom_in -> {
-                chart.zoomIn()
+                gameView.zoomIn()
                 return true
             }
             R.id.action_zoom_out -> {
-                chart.zoomOut()
+                gameView.zoomOut()
                 return true
             }
             R.id.action_pan_left -> {
-                chart.panLeft()
+                gameView.panLeft()
                 return true
             }
             R.id.action_pan_right -> {
-                chart.panRight()
+                gameView.panRight()
                 return true
             }
             R.id.action_pan_up -> {
-                chart.panUp()
+                gameView.panUp()
                 return true
             }
             R.id.action_pan_down -> {
-                chart.panDown()
+                gameView.panDown()
                 return true
             }
         }
@@ -63,11 +64,12 @@ class GameActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
+        gameEngine.viewport = gameView.currentViewport
         gameEngine.save()
     }
 
     private fun setupObservers() {
-        gameEngine.updateEvent.observe(this, Observer { chart.invalidate() })
+        gameEngine.updateEvent.observe(this, Observer { gameView.invalidate() })
     }
 
     companion object {

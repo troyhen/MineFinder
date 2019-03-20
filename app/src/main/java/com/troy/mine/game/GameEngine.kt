@@ -1,5 +1,6 @@
 package com.troy.mine.game
 
+import android.graphics.RectF
 import androidx.annotation.AnyThread
 import com.troy.mine.model.db.MineDatabase
 import com.troy.mine.model.db.entity.Cell
@@ -20,6 +21,7 @@ class GameEngine(private val db: MineDatabase) {
     var cells = emptyList<Cell>()
     var columns = 0
     var rows = 0
+    var viewport = RectF()
 
     fun findNearest(x: Float, y: Float): Cell? {
         var shortest = Float.MAX_VALUE
@@ -60,6 +62,10 @@ class GameEngine(private val db: MineDatabase) {
             GameState.PLAY
         }
         cells = db.cellDao.findAll()
+        viewport.left = db.prefDao.getFloat(VIEW_LEFT)
+        viewport.top = db.prefDao.getFloat(VIEW_TOP)
+        viewport.right = db.prefDao.getFloat(VIEW_RIGHT)
+        viewport.bottom = db.prefDao.getFloat(VIEW_BOTTOM)
     }
 
     fun reset(columns: Int, rows: Int, mines: Int) {
@@ -101,6 +107,11 @@ class GameEngine(private val db: MineDatabase) {
                     count(column - 1, row) + count(column + 1, row) +
                     count(left, below) + count(right, below)
         }
+        val cx = columns * .5f
+        val cy = rows * .5f
+        val w = StartupActivity.FieldSize.SMALL.columns.toFloat() / 2
+        val h = StartupActivity.FieldSize.SMALL.rows.toFloat() / 2
+        viewport = RectF(cx - w, cy - h, cx + w, cy + h)
     }
 
     fun revealCell(cell: Cell?): Boolean {
@@ -129,6 +140,10 @@ class GameEngine(private val db: MineDatabase) {
             }
             db.prefDao.put(MODE, mode.name)
             db.prefDao.put(STATE, state.name)
+            db.prefDao.put(VIEW_LEFT, viewport.left)
+            db.prefDao.put(VIEW_TOP, viewport.top)
+            db.prefDao.put(VIEW_RIGHT, viewport.right)
+            db.prefDao.put(VIEW_BOTTOM, viewport.bottom)
         }
     }
 
@@ -235,5 +250,9 @@ class GameEngine(private val db: MineDatabase) {
         private const val ROWS = "rows"
         private const val MODE = "mode"
         private const val STATE = "state"
+        private const val VIEW_BOTTOM = "viewBottom"
+        private const val VIEW_LEFT = "viewLeft"
+        private const val VIEW_RIGHT = "viewRight"
+        private const val VIEW_TOP = "viewTop"
     }
 }

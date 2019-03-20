@@ -90,13 +90,8 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     private val gameEngine: GameEngine by inject()
 
     init {
-        maxViewport = RectF(AXIS_X_MIN, AXIS_Y_MIN, AXIS_X_MAX, AXIS_Y_MAX)
-        currentViewport = RectF(
-            maxViewport.centerX() - maxViewport.width() / 4,
-            maxViewport.centerY() - maxViewport.height() / 4,
-            maxViewport.centerX() + maxViewport.width() / 4,
-            maxViewport.centerY() + maxViewport.height() / 4
-        )
+        maxViewport = RectF(0f, 0f, gameEngine.columns + 4f, gameEngine.rows + 6f)
+        currentViewport = RectF(gameEngine.viewport)
 
         initPaints()
     }
@@ -218,7 +213,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
 
     private fun drawCircles(canvas: Canvas) {
-        val cellSize = (AXIS_Y_MAX - AXIS_Y_MIN) / gameEngine.rows
+        val cellSize = maxViewport.height() / gameEngine.rows
         val baseTextSize = cellSize * .8f
         val zoom = maxViewport.height() / currentViewport.height()
         val ratio = contentRect.height() / maxViewport.height()
@@ -271,11 +266,11 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         canvas.drawText("\uD83D\uDEA9", x, y, normalTextPaint)
     }
 
-    companion object {
-        // Viewport extremes
-        private const val AXIS_X_MIN = 0f
-        private const val AXIS_X_MAX = 160f
-        private const val AXIS_Y_MIN = 0f
-        private const val AXIS_Y_MAX = 300f
-    }
+//    companion object {
+//        // Viewport extremes
+//        private const val AXIS_X_MIN = 0f
+//        private const val AXIS_X_MAX = 160f
+//        private const val AXIS_Y_MIN = 0f
+//        private const val AXIS_Y_MAX = 300f
+//    }
 }

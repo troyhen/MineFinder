@@ -105,7 +105,7 @@ open class InteractiveView @JvmOverloads constructor(context: Context, attrs: At
      * @see .contentRect
      * @see .maxViewport
      */
-    protected var currentViewport: RectF = maxViewport
+    var currentViewport: RectF = maxViewport
         set(value) {
             field = value
             constrainViewport()

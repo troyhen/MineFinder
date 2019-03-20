@@ -1,12 +1,11 @@
-package com.troy.mine
+package com.troy.mine.game
 
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
-import com.troy.mine.game.GameActivity
-import com.troy.mine.game.GameEngine
+import com.troy.mine.R
 import kotlinx.android.synthetic.main.activity_startup.*
 import org.koin.android.ext.android.inject
 import kotlin.math.roundToInt
@@ -129,13 +128,6 @@ class StartupActivity : AppCompatActivity() {
          * and a change of the status and navigation bar.
          */
         private const val UI_ANIMATION_DELAY = 300
-
-        private const val COLUMNS = 13
-        private const val ROWS = 30
-        private val MINES_SQRT = Math.sqrt((COLUMNS * ROWS).toDouble())
-        private val MINES_EASY = (MINES_SQRT * 2).roundToInt()
-        private val MINES_MED = (MINES_SQRT * 3).roundToInt()
-        private val MINES_HARD = (MINES_SQRT * 4).roundToInt()
     }
 
     enum class Difficulty(val scale: Float) {
