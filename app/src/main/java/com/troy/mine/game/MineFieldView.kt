@@ -99,7 +99,6 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         )
 
         initPaints()
-        gameEngine.reset(COLUMNS, ROWS, MINES_MED)
     }
 
     override fun onClick(e: MotionEvent): Boolean {
@@ -219,22 +218,24 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
 
     private fun drawCircles(canvas: Canvas) {
+        val cellSize = (AXIS_Y_MAX - AXIS_Y_MIN) / gameEngine.rows
+        val baseTextSize = cellSize * .8f
         val zoom = maxViewport.height() / currentViewport.height()
         val ratio = contentRect.height() / maxViewport.height()
-        val textSize = TEXT_SIZE * zoom * ratio
+        val textSize = baseTextSize * zoom * ratio
         val textShift = textSize / 3
-        val radius = CELL * zoom * .5f * ratio
-        val xSpace = CELL * 1.09f
+        val radius = cellSize * zoom * .5f * ratio
+        val xSpace = cellSize * 1.09f
         val xSpace2 = xSpace / 2
-        val ySpace = CELL * .95f
+        val ySpace = cellSize * .95f
         zoomedTextPaint.textSize = textSize
         revealPaint.strokeWidth = zoom * 2
         for (y in 0 until gameEngine.rows) {
-            val yc = getDrawY(y * ySpace + SHIFT)
+            val yc = getDrawY(y * ySpace + cellSize)
             val yt = yc + textShift
-            val xoffset = SHIFT + if (y % 2 == 0) 0f else xSpace2
+            val xOffset = cellSize + if (y % 2 == 0) 0f else xSpace2
             for (x in 0 until gameEngine.columns) {
-                val xc = getDrawX(x * xSpace + xoffset)
+                val xc = getDrawX(x * xSpace + xOffset)
                 val index = y * gameEngine.columns + x
                 val cell = gameEngine.cells[index]
                 cell.x = xc
@@ -271,21 +272,10 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     }
 
     companion object {
-        // Viewport extremes. See currentViewport for a discussion of the viewport.
+        // Viewport extremes
         private const val AXIS_X_MIN = 0f
         private const val AXIS_X_MAX = 160f
         private const val AXIS_Y_MIN = 0f
         private const val AXIS_Y_MAX = 300f
-
-        private const val COLUMNS = 13
-        private const val ROWS = 30
-        private val MINES_SQRT = Math.sqrt((COLUMNS * ROWS).toDouble())
-        private val MINES_EASY = (MINES_SQRT * 2).roundToInt()
-        private val MINES_MED = (MINES_SQRT * 3).roundToInt()
-        private val MINES_HARD = (MINES_SQRT * 4).roundToInt()
-
-        private const val CELL = (AXIS_Y_MAX - AXIS_Y_MIN) / ROWS
-        private const val TEXT_SIZE = CELL * .8f
-        private const val SHIFT = CELL
     }
 }
