@@ -8,20 +8,22 @@
     <string name="action_pan_right">Demo pan right</string>
     <string name="action_pan_up">Demo pan up</string>
     <string name="action_pan_down">Demo pan down</string>
+    <string name="difficulty">Difficulty</string>
     <string-array name="difficulty">
         <item>Easy</item>
         <item>Medium</item>
         <item>Hard</item>
         <item>Crazy</item>
     </string-array>
+    <string name="drag_handle">Drag handle</string>
     <string-array name="fieldSize">
         <item>Small</item>
         <item>Medium</item>
         <item>Large</item>
         <item>Huge</item>
     </string-array>
+    <string name="flag" translatable="false">🚩</string>
     <string name="resumeGame">Resume Game</string>
     <string name="startGame">Start Game</string>
     <string name="size">Size</string>
-    <string name="difficulty">Difficulty</string>
 </resources>
