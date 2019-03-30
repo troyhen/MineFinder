@@ -77,6 +77,7 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     private val revealPaint = Paint()
     private val windowPaint = Paint()
 
+    private val gameEngine: GameEngine by inject()
     private val vibrationEffect: VibrationEffect? by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) VibrationEffect.createOneShot(
             250,
@@ -84,8 +85,6 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         ) else null
     }
     private val vibrator: Vibrator? by lazy { context.getSystemService(Vibrator::class.java) }
-
-    private val gameEngine: GameEngine by inject()
 
     init {
         maxViewport = RectF(0f, 0f, gameEngine.columns + 4f, gameEngine.rows + 6f)
@@ -211,11 +210,13 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         val textSize = baseTextSize * zoom * ratio
         val textShift = textSize / 3
         val radius = cellSize * zoom * .5f * ratio
-        val xSpace = cellSize * 1.09f
+        val xSpace = cellSize * .75f
         val xSpace2 = xSpace / 2
         val ySpace = cellSize * .95f
         zoomedTextPaint.textSize = textSize
         revealPaint.strokeWidth = zoom * 2
+        val bomb = context.getString(R.string.bomb)    //"💣"
+        val flag = context.getString(R.string.flag) //"\uD83D\uDEA9"
         for (y in 0 until gameEngine.rows) {
             val yc = getDrawY(y * ySpace + cellSize)
             val yt = yc + textShift
@@ -232,10 +233,10 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
                     canvas.drawCircle(xc, yc, radius, revealPaint)
                 }
                 val text = when {
-                    cell.isMarked -> "\uD83D\uDEA9"
-                    gameEngine.state == GameState.LOST && cell.hasMine -> "💣"
+                    cell.isMarked -> flag
+                    gameEngine.state == GameState.LOST && cell.hasMine -> bomb
                     !cell.isRevealed -> ""
-                    cell.hasMine -> "💣"
+                    cell.hasMine -> bomb
                     cell.neighborMines == 0 -> ""
                     else -> cell.neighborMines.toString()
                 }
