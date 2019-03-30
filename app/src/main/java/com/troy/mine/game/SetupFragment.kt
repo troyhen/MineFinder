@@ -20,11 +20,11 @@ class SetupFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        difficultySpinner.adapter = ArrayAdapter.createFromResource(requireContext(), R.array.difficulty, android.R.layout.simple_spinner_item).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        difficultySpinner.adapter = ArrayAdapter.createFromResource(requireContext(), R.array.difficulty, R.layout.item_selected).also { adapter ->
+            adapter.setDropDownViewResource(R.layout.item_spinner)
         }
-        sizeSpinner.adapter = ArrayAdapter.createFromResource(requireContext(), R.array.fieldSize, android.R.layout.simple_spinner_item).also { adapter ->
-            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        sizeSpinner.adapter = ArrayAdapter.createFromResource(requireContext(), R.array.fieldSize, R.layout.item_selected).also { adapter ->
+            adapter.setDropDownViewResource(R.layout.item_spinner)
         }
         resumeButton.setOnClickListener { resumeGame() }
         startButton.setOnClickListener { startGame() }
