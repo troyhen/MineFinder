@@ -5,6 +5,15 @@
     android:layout_height="match_parent"
     >
 
+    <com.troy.mine.game.MineFieldView
+        android:id="@+id/gameView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/gameBackground"
+        android:padding="@dimen/chart_padding"
+        tools:context=".game.GameFragment"
+        />
+
     <LinearLayout
         android:id="@+id/infoPanel"
         android:layout_width="wrap_content"
@@ -23,19 +32,12 @@
             />
 
         <TextView
+            android:id="@+id/modeIndicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:padding="4dp"
             android:text="@string/flag"
-            android:textSize="12sp"
+            android:textSize="18sp"
             />
     </LinearLayout>
-
-    <com.troy.mine.game.MineFieldView
-        android:id="@+id/gameView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/gameBackground"
-        android:padding="@dimen/chart_padding"
-        tools:context=".game.GameFragment"
-        />
 </FrameLayout>
