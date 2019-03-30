@@ -7,5 +7,4 @@
     <color name="black_overlay">#66000000</color>
     <color name="homeBackground">@color/colorPrimaryDark</color>
     <color name="gameBackground">@android:color/white</color>
-    <color name="windowBackground">#aaaaaa</color>
 </resources>

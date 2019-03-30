@@ -42,18 +42,23 @@ class GameFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        var dx = 0f
-        var dy = 0f
+        var xOffset = 0f
+        var yOffset = 0f
+        var xRange = 0f..0f
+        var yRange = 0f..0f
+
         dragHandle.setOnTouchListener { _, event ->
             return@setOnTouchListener when (event.action and MotionEvent.ACTION_MASK) {
                 MotionEvent.ACTION_DOWN -> {
-                    dx = infoPanel.translationX - event.rawX
-                    dy = infoPanel.translationY - event.rawY
+                    xOffset = infoPanel.translationX - event.rawX
+                    yOffset = infoPanel.translationY - event.rawY
+                    xRange = -infoPanel.left.toFloat()..(view!!.width - infoPanel.width - infoPanel.left).toFloat()
+                    yRange = -infoPanel.top.toFloat()..(view!!.height - infoPanel.height - infoPanel.top).toFloat()
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    infoPanel.translationX = (event.rawX + dx).coerceIn(-infoPanel.left.toFloat()..(view!!.width - infoPanel.width - infoPanel.left).toFloat())
-                    infoPanel.translationY = (event.rawY + dy).coerceIn(-infoPanel.top.toFloat()..(view!!.height - infoPanel.height - infoPanel.top).toFloat())
+                    infoPanel.translationX = (event.rawX + xOffset).coerceIn(xRange)
+                    infoPanel.translationY = (event.rawY + yOffset).coerceIn(yRange)
                     true
                 }
                 MotionEvent.ACTION_UP -> {
@@ -65,6 +70,7 @@ class GameFragment : Fragment() {
             }
         }
         modeIndicator.setOnClickListener { gameEngine.toggleMode() }
+        closeButton.setOnClickListener { activity?.onBackPressed() }
     }
 
     private fun setupObservers() = gameEngine.apply {
