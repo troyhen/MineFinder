@@ -1,6 +1,7 @@
 package com.troy.mine.game
 
 import android.graphics.Color
+import android.graphics.PointF
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -16,8 +17,6 @@ import org.koin.android.ext.android.inject
 class GameFragment : Fragment() {
 
     private val gameEngine: GameEngine by inject()
-    private var windowX: Float = 0f
-    private var windowY: Float = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,8 +61,7 @@ class GameFragment : Fragment() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    windowX = infoPanel.translationX
-                    windowY = infoPanel.translationY
+                    gameEngine.infoPanelOffsetLive.value = PointF(infoPanel.translationX, infoPanel.translationY)
                     true
                 }
                 else -> false
@@ -74,6 +72,10 @@ class GameFragment : Fragment() {
     }
 
     private fun setupObservers() = gameEngine.apply {
+        infoPanelOffsetLive.observe(this@GameFragment, Observer {
+            infoPanel.translationX = it.x
+            infoPanel.translationY = it.y
+        })
         modeLive.observe(this@GameFragment, Observer {
             val background = when (it) {
                 ClickMode.MARK -> Color.YELLOW

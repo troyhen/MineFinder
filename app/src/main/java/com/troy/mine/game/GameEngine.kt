@@ -1,5 +1,6 @@
 package com.troy.mine.game
 
+import android.graphics.PointF
 import android.graphics.RectF
 import androidx.annotation.AnyThread
 import androidx.lifecycle.MutableLiveData
@@ -28,6 +29,7 @@ class GameEngine(private val db: MineDatabase) {
     var columns = 0
     var rows = 0
     var viewport = RectF()
+    val infoPanelOffsetLive = MutableLiveData<PointF>()
 
     fun findNearest(x: Float, y: Float): Cell? {
         var shortest = Float.MAX_VALUE
@@ -68,10 +70,8 @@ class GameEngine(private val db: MineDatabase) {
             GameState.PLAY
         }
         cells = db.cellDao.findAll()
-        viewport.left = db.prefDao.getFloat(VIEW_LEFT)
-        viewport.top = db.prefDao.getFloat(VIEW_TOP)
-        viewport.right = db.prefDao.getFloat(VIEW_RIGHT)
-        viewport.bottom = db.prefDao.getFloat(VIEW_BOTTOM)
+        viewport = db.prefDao.getRectF(VIEW) ?: viewport
+        db.prefDao.getPointF(INFO_PANEL)?.let { infoPanelOffsetLive.postValue(it) }
     }
 
     fun reset(columns: Int, rows: Int, mines: Int) {
@@ -146,10 +146,8 @@ class GameEngine(private val db: MineDatabase) {
             }
             db.prefDao.put(MODE, mode.name)
             db.prefDao.put(STATE, state.name)
-            db.prefDao.put(VIEW_LEFT, viewport.left)
-            db.prefDao.put(VIEW_TOP, viewport.top)
-            db.prefDao.put(VIEW_RIGHT, viewport.right)
-            db.prefDao.put(VIEW_BOTTOM, viewport.bottom)
+            db.prefDao.put(VIEW, viewport)
+            infoPanelOffsetLive.value?.let { db.prefDao.put(INFO_PANEL, it) }
         }
     }
 
@@ -256,9 +254,7 @@ class GameEngine(private val db: MineDatabase) {
         private const val ROWS = "rows"
         private const val MODE = "mode"
         private const val STATE = "state"
-        private const val VIEW_BOTTOM = "viewBottom"
-        private const val VIEW_LEFT = "viewLeft"
-        private const val VIEW_RIGHT = "viewRight"
-        private const val VIEW_TOP = "viewTop"
+        private const val VIEW = "view"
+        private const val INFO_PANEL = "infoPanel"
     }
 }
