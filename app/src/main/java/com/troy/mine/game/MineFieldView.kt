@@ -77,8 +77,6 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     private val revealPaint = Paint()
     private val windowPaint = Paint()
 
-    private val window = RectF()
-
     private val vibrationEffect: VibrationEffect? by lazy {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) VibrationEffect.createOneShot(
             250,
@@ -99,15 +97,11 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
     override fun onClick(e: MotionEvent): Boolean {
         return if (gameEngine.state == GameState.PLAY) {
             when {
-                window.contains(e.x, e.y) -> {
-                    gameEngine.toggleMode()
-                    true
-                }
                 contentRect.contains(e.x.roundToInt(), e.y.roundToInt()) -> {
                     val cell = gameEngine.findNearest(e.x, e.y)
-                    when (gameEngine.mode) {
+                    when (gameEngine.modeLive.value) {
                         ClickMode.MARK -> gameEngine.markCell(cell)
-                        ClickMode.REVEAL -> gameEngine.revealCell(cell)
+                        else -> gameEngine.revealCell(cell)
                     }
                 }
                 else -> super.onClick(e)
@@ -131,7 +125,6 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
 
         // Draws chart container
         canvas.drawRect(contentRect, mAxisPaint)
-        drawWindow(canvas)
     }
 
     override fun onLongClick(e: MotionEvent) {
@@ -178,8 +171,6 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
         mLabelTextPaint.color = labelTextColor
         labelHeight = Math.max(Math.abs(mLabelTextPaint.fontMetrics.top), 1f).toInt()
         maxLabelWidth = Math.max(mLabelTextPaint.measureText("0000"), 1f).toInt()
-
-        window.set(30f, 30f, 130f, 120f)
 
         mGridPaint.strokeWidth = gridThickness
         mGridPaint.color = gridColor
@@ -252,25 +243,4 @@ open class MineFieldView @JvmOverloads constructor(context: Context, attrs: Attr
             }
         }
     }
-
-    private fun drawWindow(canvas: Canvas) {
-        canvas.drawRoundRect(
-            window,
-            20f,
-            20f,
-            if (gameEngine.mode == ClickMode.MARK) markPaint else revealPaint
-        )
-        canvas.drawRoundRect(window, 20f, 20f, windowPaint)
-        val x = window.centerX()
-        val y = window.top + window.height() * .8f
-        canvas.drawText("\uD83D\uDEA9", x, y, normalTextPaint)
-    }
-
-//    companion object {
-//        // Viewport extremes
-//        private const val AXIS_X_MIN = 0f
-//        private const val AXIS_X_MAX = 160f
-//        private const val AXIS_Y_MIN = 0f
-//        private const val AXIS_Y_MAX = 300f
-//    }
 }

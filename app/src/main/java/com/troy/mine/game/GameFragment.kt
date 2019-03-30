@@ -1,5 +1,6 @@
 package com.troy.mine.game
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -51,8 +52,8 @@ class GameFragment : Fragment() {
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    infoPanel.translationX = event.rawX + dx
-                    infoPanel.translationY = event.rawY + dy
+                    infoPanel.translationX = (event.rawX + dx).coerceIn(-infoPanel.left.toFloat()..(view!!.width - infoPanel.width - infoPanel.left).toFloat())
+                    infoPanel.translationY = (event.rawY + dy).coerceIn(-infoPanel.top.toFloat()..(view!!.height - infoPanel.height - infoPanel.top).toFloat())
                     true
                 }
                 MotionEvent.ACTION_UP -> {
@@ -63,9 +64,17 @@ class GameFragment : Fragment() {
                 else -> false
             }
         }
+        modeIndicator.setOnClickListener { gameEngine.toggleMode() }
     }
 
-    private fun setupObservers() {
-        gameEngine.updateEvent.observe(this, Observer { gameView.invalidate() })
+    private fun setupObservers() = gameEngine.apply {
+        modeLive.observe(this@GameFragment, Observer {
+            val background = when (it) {
+                ClickMode.MARK -> Color.YELLOW
+                else -> Color.WHITE
+            }
+            modeIndicator.setBackgroundColor(background)
+        })
+        updateEvent.observe(this@GameFragment, Observer { gameView.invalidate() })
     }
 }

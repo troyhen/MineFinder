@@ -2,6 +2,7 @@ package com.troy.mine.game
 
 import android.graphics.RectF
 import androidx.annotation.AnyThread
+import androidx.lifecycle.MutableLiveData
 import com.troy.mine.model.db.MineDatabase
 import com.troy.mine.model.db.entity.Cell
 import com.troy.mine.util.SingleLiveEvent
@@ -17,7 +18,12 @@ class GameEngine(private val db: MineDatabase) {
     val updateEvent = SingleLiveEvent<Void>()
 
     var state = GameState.PLAY
-    var mode = ClickMode.REVEAL
+    private var mode = ClickMode.REVEAL
+        set(value) {
+            field = value
+            modeLive.value = value
+        }
+    val modeLive = MutableLiveData<ClickMode>().apply { value = mode }
     var cells = emptyList<Cell>()
     var columns = 0
     var rows = 0
