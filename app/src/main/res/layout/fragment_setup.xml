@@ -90,4 +90,19 @@
         android:textColor="@color/colorPrimary"
         />
 
+    <Button
+        android:id="@+id/exitButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:backgroundTint="@color/whiteFade"
+        android:text="@string/exitGame"
+        android:textColor="@color/colorPrimary"
+        />
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="40dp"
+        />
+
 </LinearLayout>

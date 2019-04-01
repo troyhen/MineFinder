@@ -12,25 +12,38 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
+/**
+ * Manages the logical aspects of the game setup, play and ending
+ */
 class GameEngine(private val db: MineDatabase) {
 
-    val updateEvent = SingleLiveEvent<Void>()
-
-    var state = GameState.PLAY
+    var cells = emptyList<Cell>()   // list of cells organized by rows, end-to-end
+    var columns = 0 // number of columns
+    var rows = 0    // number of rows
+    var difficulty = Difficulty.EASY
+    var fieldSize = FieldSize.SMALL
+    var infoPanelOffset: PointF? = null // location of the info panel
     private var mode = ClickMode.REVEAL
         set(value) {
             field = value
-            modeLive.value = value
+            modeLive.postValue(value)
         }
-    val modeLive = MutableLiveData<ClickMode>().apply { value = mode }
-    var cells = emptyList<Cell>()
-    var columns = 0
-    var rows = 0
-    var viewport = RectF()
-    val infoPanelOffsetLive = MutableLiveData<PointF>()
+    var modeLive = MutableLiveData<ClickMode>().apply { value = mode }
+    var state = GameState.PLAY
+    var viewport = RectF()  // visible area of the game, adjusted for pan and zoom
 
+    val updateEvent = SingleLiveEvent<Void>()   // notify when the game needs to be redrawn
+
+    init {
+        load()
+    }
+
+    /**
+     * Find the nearest cell to the screen coordinates
+     */
     fun findNearest(x: Float, y: Float): Cell? {
         var shortest = Float.MAX_VALUE
         var cell: Cell? = null
@@ -46,40 +59,34 @@ class GameEngine(private val db: MineDatabase) {
         return cell
     }
 
+    /**
+     * Mark a cell with a flag
+     */
     fun markCell(cell: Cell?): Boolean {
         cell ?: return false
         Timber.d("cell $cell")
         cell.isMarked = !cell.isMarked
         detectWin()
-        invalidate()
+        redraw()
         return true
     }
 
-    @AnyThread
-    fun load() = GlobalScope.launch {
-        columns = db.prefDao.getInt(COLUMNS)
-        rows = db.prefDao.getInt(ROWS)
-        mode = try {
-            ClickMode.valueOf(db.prefDao.getString(MODE))
-        } catch (e: Exception) {
-            ClickMode.REVEAL
-        }
-        state = try {
-            GameState.valueOf(db.prefDao.getString(STATE))
-        } catch (e: Exception) {
-            GameState.PLAY
-        }
-        cells = db.cellDao.findAll()
-        viewport = db.prefDao.getRectF(VIEW) ?: viewport
-        db.prefDao.getPointF(INFO_PANEL)?.let { infoPanelOffsetLive.postValue(it) }
-    }
-
-    fun reset(columns: Int, rows: Int, mines: Int) {
+    /**
+     * Start a new game and save initial state values. Note, the game state is only partially saved at this point.
+     */
+    fun startGame(difficulty: Difficulty, fieldSize: FieldSize) {
+        this.difficulty = difficulty
+        this.fieldSize = fieldSize
+        val mines = (Math.sqrt(fieldSize.columns.toDouble() * fieldSize.rows) * difficulty.scale).roundToInt()
+        val columns = fieldSize.columns
+        val rows = fieldSize.rows
         GlobalScope.launch {
             db.runInTransaction {
                 db.cellDao.deleteAll()
                 db.prefDao.put(COLUMNS, columns)
                 db.prefDao.put(ROWS, rows)
+                db.prefDao.put(DIFFICULTY, difficulty.name)
+                db.prefDao.put(SIZE, fieldSize.name)
             }
         }
         mode = ClickMode.REVEAL
@@ -109,26 +116,29 @@ class GameEngine(private val db: MineDatabase) {
             val left = column - shift
             val right = left + 1
             val cell = cells[i]
-            cell.neighborMines = count(left, above) + count(right, above) +
-                    count(column - 1, row) + count(column + 1, row) +
-                    count(left, below) + count(right, below)
+            cell.neighborMines = countOne(left, above) + countOne(right, above) +
+                    countOne(column - 1, row) + countOne(column + 1, row) +
+                    countOne(left, below) + countOne(right, below)
         }
         val cx = columns * .5f
         val cy = rows * .5f
-        val w = SetupFragment.FieldSize.SMALL.columns.toFloat() / 2
-        val h = SetupFragment.FieldSize.SMALL.rows.toFloat() / 2
+        val w = FieldSize.SMALL.columns.toFloat() / 2
+        val h = FieldSize.SMALL.rows.toFloat() / 2
         viewport = RectF(cx - w, cy - h, cx + w, cy + h)
     }
 
+    /**
+     * Reveal the cell
+     */
     fun revealCell(cell: Cell?): Boolean {
         cell ?: return false
         if (cell.isRevealed) {
-            if (countFlags(cell) == cell.neighborMines) {
+            if (countNeighbors(cell) == cell.neighborMines) {
                 revealNeighbors(cell)
             }
         } else {
             cell.isRevealed = true
-            invalidate()
+            redraw()
             if (cell.isRevealed && cell.neighborMines == 0 && !cell.hasMine) {
                 GlobalScope.launch { revealZeros(cell) }
             }
@@ -138,6 +148,9 @@ class GameEngine(private val db: MineDatabase) {
         return true
     }
 
+    /**
+     * Save the current game state
+     */
     @AnyThread
     fun save() = GlobalScope.launch {
         db.runInTransaction {
@@ -147,24 +160,25 @@ class GameEngine(private val db: MineDatabase) {
             db.prefDao.put(MODE, mode.name)
             db.prefDao.put(STATE, state.name)
             db.prefDao.put(VIEW, viewport)
-            infoPanelOffsetLive.value?.let { db.prefDao.put(INFO_PANEL, it) }
+            infoPanelOffset?.let { db.prefDao.put(INFO_PANEL, it) }
         }
     }
 
+    /**
+     * Switch between click modes
+     */
     fun toggleMode() {
         mode = when (mode) {
             ClickMode.REVEAL -> ClickMode.MARK
             ClickMode.MARK -> ClickMode.REVEAL
         }
-        invalidate()
+        redraw()
     }
 
-    private fun count(column: Int, row: Int): Int {
-        val cell = getCell(column, row) ?: return 0
-        return if (cell.hasMine) 1 else 0
-    }
-
-    private fun countFlags(cell: Cell): Int {
+    /**
+     * Count the number of immediately surrounding mines
+     */
+    private fun countNeighbors(cell: Cell): Int {
         val column = cell.column
         val row = cell.row
         val above = row - 1
@@ -182,6 +196,17 @@ class GameEngine(private val db: MineDatabase) {
         return count
     }
 
+    /**
+     * Return 1 if a mine is present at the coordinate or 0 if not
+     */
+    private fun countOne(column: Int, row: Int): Int {
+        val cell = getCell(column, row) ?: return 0
+        return if (cell.hasMine) 1 else 0
+    }
+
+    /**
+     * Detect if the player has won the game
+     */
     private fun detectWin() {
         var empty = 0
         var mines = 0
@@ -197,14 +222,46 @@ class GameEngine(private val db: MineDatabase) {
         }
     }
 
+    /**
+     * Return the requested cell or null if coordinates are out of bounds
+     */
     private fun getCell(column: Int, row: Int): Cell? {
         if (column < 0 || column >= columns || row < 0 || row >= rows) return null
         val index = column + row * columns
         return cells[index]
     }
 
-    private fun invalidate() = updateEvent.postCall()
+    /**
+     * Load the current game state from the database or call setup if not found
+     */
+    @AnyThread
+    private fun load() = GlobalScope.launch {
+        state = try {
+            GameState.valueOf(db.prefDao.getString(STATE))
+        } catch (e: Exception) {
+            setup()
+            GameState.PLAY
+        }
+        columns = db.prefDao.getInt(COLUMNS, 0)
+        rows = db.prefDao.getInt(ROWS, 0)
+        mode = try {
+            ClickMode.valueOf(db.prefDao.getString(MODE))
+        } catch (e: Exception) {
+            ClickMode.REVEAL
+        }
+        cells = db.cellDao.findAll()
+        viewport = db.prefDao.getRectF(VIEW) ?: viewport
+        db.prefDao.getPointF(INFO_PANEL)?.let { infoPanelOffset = it }
+    }
 
+    /**
+     * Request to redraw the game view
+     */
+    private fun redraw() = updateEvent.postCall()
+
+    /**
+     * Reveal each of the immediately neighboring cells
+     */
     private fun revealNeighbors(cell: Cell) {
         val column = cell.column
         val row = cell.row
@@ -221,6 +278,9 @@ class GameEngine(private val db: MineDatabase) {
         getCell(right, below)?.takeIf { !it.isRevealed && !it.isMarked }?.let { revealCell(it) }
     }
 
+    /**
+     * Reveal all of the neighboring empty cells, and 1 step into the non empty ones
+     */
     private suspend fun revealZeros(cell: Cell) {
         var first = cell
         val list = mutableSetOf<Cell>()
@@ -243,16 +303,27 @@ class GameEngine(private val db: MineDatabase) {
                 first = list.first()
                 list.remove(first)
                 first.isRevealed = true
-                withContext(Dispatchers.Main) { invalidate() }
+                // Dispatch on Main here to give the OS time to redraw, while we are still revealing cells
+                withContext(Dispatchers.Main) { redraw() }
             } while (first.neighborMines > 0)
         }
         detectWin()
     }
 
+    /**
+     * Setup initial values
+     */
+    private fun setup() {
+        difficulty = Difficulty.EASY
+        fieldSize = FieldSize.SMALL
+    }
+
     companion object {
         private const val COLUMNS = "columns"
         private const val ROWS = "rows"
+        private const val DIFFICULTY = "difficulty"
         private const val MODE = "mode"
+        private const val SIZE = "size"
         private const val STATE = "state"
         private const val VIEW = "view"
         private const val INFO_PANEL = "infoPanel"

@@ -13,7 +13,6 @@ import com.troy.mine.R
 import kotlinx.android.synthetic.main.fragment_game.*
 import org.koin.android.ext.android.inject
 
-
 class GameFragment : Fragment() {
 
     private val gameEngine: GameEngine by inject()
@@ -21,8 +20,11 @@ class GameFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState != null) {
-            gameEngine.load()
             gameView.currentViewport = gameEngine.viewport
+            gameEngine.infoPanelOffset?.let {
+                infoPanel.translationX = it.x
+                infoPanel.translationY = it.y
+            }
         }
     }
 
@@ -61,7 +63,7 @@ class GameFragment : Fragment() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    gameEngine.infoPanelOffsetLive.value = PointF(infoPanel.translationX, infoPanel.translationY)
+                    gameEngine.infoPanelOffset = PointF(infoPanel.translationX, infoPanel.translationY)
                     true
                 }
                 else -> false
@@ -72,10 +74,6 @@ class GameFragment : Fragment() {
     }
 
     private fun setupObservers() = gameEngine.apply {
-        infoPanelOffsetLive.observe(this@GameFragment, Observer {
-            infoPanel.translationX = it.x
-            infoPanel.translationY = it.y
-        })
         modeLive.observe(this@GameFragment, Observer {
             val background = when (it) {
                 ClickMode.MARK -> Color.YELLOW
