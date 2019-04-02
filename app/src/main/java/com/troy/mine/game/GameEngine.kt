@@ -242,6 +242,17 @@ class GameEngine(private val db: MineDatabase) {
             setup()
             GameState.PLAY
         }
+        difficulty = try {
+            Difficulty.valueOf(db.prefDao.getString(DIFFICULTY, difficulty.name))
+        } catch (e: Exception) {
+            Difficulty.EASY
+        }
+        fieldSize = try {
+            FieldSize.valueOf(db.prefDao.getString(SIZE, fieldSize.name))
+        } catch (e: Exception) {
+            FieldSize.SMALL
+        }
+        db.prefDao.put(SIZE, fieldSize.name)
         columns = db.prefDao.getInt(COLUMNS, 0)
         rows = db.prefDao.getInt(ROWS, 0)
         mode = try {
