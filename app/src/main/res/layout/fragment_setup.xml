@@ -45,6 +45,7 @@
             android:labelFor="@id/sizeSpinner"
             android:text="@string/size"
             android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
             />
 
         <Spinner
@@ -69,6 +70,7 @@
             android:labelFor="@id/difficultySpinner"
             android:text="@string/difficulty"
             android:textColor="@color/colorPrimary"
+            android:textSize="18sp"
             />
 
         <Spinner

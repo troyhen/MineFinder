@@ -10,6 +10,7 @@ import com.troy.mine.util.SingleLiveEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.math.roundToInt
@@ -77,7 +78,6 @@ class GameEngine(private val db: MineDatabase) {
     fun startGame(difficulty: Difficulty, fieldSize: FieldSize) {
         this.difficulty = difficulty
         this.fieldSize = fieldSize
-        val mines = (Math.sqrt(fieldSize.columns.toDouble() * fieldSize.rows) * difficulty.scale).roundToInt()
         val columns = fieldSize.columns
         val rows = fieldSize.rows
         GlobalScope.launch {
@@ -94,6 +94,7 @@ class GameEngine(private val db: MineDatabase) {
         this.columns = columns
         this.rows = rows
         val size = columns * rows
+        val mines = (size * difficulty.percent).roundToInt()
         cells = MutableList(size) { index ->
             val column = index % columns
             val row = index / columns
@@ -125,6 +126,7 @@ class GameEngine(private val db: MineDatabase) {
         val w = FieldSize.SMALL.columns.toFloat() / 2
         val h = FieldSize.SMALL.rows.toFloat() / 2
         viewport = RectF(cx - w, cy - h, cx + w, cy + h)
+        if (FIND_FIRST) revealFirst()
     }
 
     /**
@@ -235,7 +237,7 @@ class GameEngine(private val db: MineDatabase) {
      * Load the current game state from the database or call setup if not found
      */
     @AnyThread
-    private fun load() = GlobalScope.launch {
+    private fun load() = runBlocking(Dispatchers.Default) {
         state = try {
             GameState.valueOf(db.prefDao.getString(STATE))
         } catch (e: Exception) {
@@ -252,7 +254,6 @@ class GameEngine(private val db: MineDatabase) {
         } catch (e: Exception) {
             FieldSize.SMALL
         }
-        db.prefDao.put(SIZE, fieldSize.name)
         columns = db.prefDao.getInt(COLUMNS, 0)
         rows = db.prefDao.getInt(ROWS, 0)
         mode = try {
@@ -269,6 +270,19 @@ class GameEngine(private val db: MineDatabase) {
      * Request to redraw the game view
      */
     private fun redraw() = updateEvent.postCall()
+
+    /**
+     * Reveal a random empty cell
+     */
+    private fun revealFirst() {
+        while (true) {
+            val cell = cells[Random.nextInt(cells.size)]
+            if (!cell.hasMine && cell.neighborMines == 0) {
+                revealCell(cell)
+                break
+            }
+        }
+    }
 
     /**
      * Reveal each of the immediately neighboring cells
@@ -338,5 +352,6 @@ class GameEngine(private val db: MineDatabase) {
         private const val STATE = "state"
         private const val VIEW = "view"
         private const val INFO_PANEL = "infoPanel"
+        private const val FIND_FIRST = true
     }
 }

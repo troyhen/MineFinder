@@ -15,7 +15,8 @@
         <item>Easy</item>
         <item>Medium</item>
         <item>Hard</item>
-        <item>Crazy</item>
+        <item>Challenging</item>
+        <item>Extreme</item>
     </string-array>
     <string name="drag_handle">Drag handle</string>
     <string-array name="fieldSize">

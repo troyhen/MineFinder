@@ -11,4 +11,5 @@
     android:paddingBottom="2dp"
     android:singleLine="true"
     android:textColor="@color/colorPrimary"
+    android:textSize="18sp"
     />
