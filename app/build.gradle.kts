@@ -1,11 +1,9 @@
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
-
 plugins {
     id("com.android.application")
+    id("com.github.ben-manes.versions") // ./gradlew dependencyUpdates -Drevision=release
     id("kotlin-android")
     id("kotlin-android-extensions")
     kotlin("kapt")
-    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -36,29 +34,21 @@ android {
 }
 
 dependencies {
-    val roomV = "2.1.0-alpha04"
-    val koinV = "2.0.0-beta-2"
-    val navV = "2.1.0-alpha01"
+    implementation(Deps.KOTLIN_STD_LIB)
+    implementation(Deps.COROUTINES)
 
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    implementation(Deps.ANDROIDX_APPCOMPAT)
+    implementation(Deps.ANDROIDX_CORE)
+    implementation(Deps.ANDROIDX_SUPPORT_LEGACY)
+    implementation(Deps.ARCH_NAVIGATION_FRAGMENT)
+    implementation(Deps.ARCH_NAVIGATION_UI)
+    implementation(Deps.ARCH_ROOM_RUNTIME)
+    kapt(Deps.ARCH_ROOM_COMPILER)
+    implementation(Deps.TIMBER)
+    implementation(Deps.KOIN)
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:${KotlinCompilerVersion.VERSION}")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1")
-
-    implementation("androidx.appcompat:appcompat:1.0.2")
-    implementation("androidx.core:core-ktx:1.0.1")
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.navigation:navigation-fragment-ktx:$navV")
-    implementation("androidx.navigation:navigation-ui-ktx:$navV")
-    implementation("androidx.room:room-runtime:$roomV")
-    implementation("androidx.room:room-coroutines:$roomV")
-    kapt("androidx.room:room-compiler:$roomV")
-    implementation("com.jakewharton.timber:timber:4.7.1")
-//    implementation("org.koin:koin-android:$koinV")
-    implementation("org.koin:koin-androidx-viewmodel:$koinV")
-
-    testImplementation("junit:junit:4.12")
-    testImplementation("androidx.room:room-testing:$roomV")
-    androidTestImplementation("androidx.test:runner:1.1.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.1.1")
+    testImplementation(Deps.TEST_JUNIT)
+    testImplementation(Deps.TEST_ARCH_ROOM_TESTING)
+    androidTestImplementation(Deps.TEST_ANDROIDX_RUNNER)
+    androidTestImplementation(Deps.TEST_ESPRESSO_CORE)
 }
