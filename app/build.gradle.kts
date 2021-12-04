@@ -1,6 +1,5 @@
 plugins {
     id("com.android.application")
-    id("com.github.ben-manes.versions") // ./gradlew dependencyUpdates -Drevision=release
     id("kotlin-android")
     id("kotlin-android-extensions")
     kotlin("kapt")
