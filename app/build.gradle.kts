@@ -1,16 +1,16 @@
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("kotlin-android-extensions")
+    kotlin("android")
     kotlin("kapt")
+    id("com.android.application")
+    id("kotlin-android-extensions")
 }
 
 android {
-    compileSdk = 30
+    compileSdk = 31
     defaultConfig {
         applicationId = "com.troy.mine"
         minSdk = 21
-        targetSdk = 30
+        targetSdk = 31
         versionCode = 1
         versionName = "1.0"
 
@@ -45,7 +45,8 @@ dependencies {
     implementation("androidx.room:room-runtime:2.4.0-rc01")
     kapt("androidx.room:room-compiler:2.4.0-rc01")
     implementation("com.jakewharton.timber:timber:5.0.1")
-    implementation("org.koin:koin-androidx-viewmodel:2.0.0")
+    implementation("io.insert-koin:koin-android:3.1.4")
+//    implementation("io.insert-koin:koin-androidx-viewmodel:3.1.4")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("androidx.room:room-testing:2.4.0-rc01")

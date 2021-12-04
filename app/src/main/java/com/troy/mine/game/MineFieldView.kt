@@ -15,12 +15,17 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.ViewCompat
 import com.troy.mine.R
-import org.koin.core.KoinComponent
-import org.koin.core.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import kotlin.math.roundToInt
 
 @TargetApi(Build.VERSION_CODES.O)
-open class MineFieldView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : InteractiveView(context, attrs, defStyle), KoinComponent {
+open class MineFieldView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyle: Int = 0
+) : InteractiveView(context, attrs, defStyle),
+    KoinComponent {
 
     private var labelSeparation = 0
     private var labelTextSize = 0f
