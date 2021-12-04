@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    compileSdkVersion(28)
+    compileSdk = 30
     defaultConfig {
         applicationId = "com.troy.mine"
-        minSdkVersion(21)
-        targetSdkVersion(28)
+        minSdk = 21
+        targetSdk = 30
         versionCode = 1
         versionName = "1.0"
 
@@ -19,7 +19,8 @@ android {
 
         javaCompileOptions {
             annotationProcessorOptions {
-                arguments = mapOf("room.schemaLocation" to "$projectDir/schema")    // used by Room to produce schema files
+                argument("room.schemaLocation", "$projectDir/schema")
+                argument("room.incremental", "true")
             }
         }
 
@@ -34,21 +35,21 @@ android {
 }
 
 dependencies {
-    implementation(Deps.KOTLIN_STD_LIB)
-    implementation(Deps.COROUTINES)
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN_VERSION")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
 
-    implementation(Deps.ANDROIDX_APPCOMPAT)
-    implementation(Deps.ANDROIDX_CORE)
-    implementation(Deps.ANDROIDX_SUPPORT_LEGACY)
-    implementation(Deps.ARCH_NAVIGATION_FRAGMENT)
-    implementation(Deps.ARCH_NAVIGATION_UI)
-    implementation(Deps.ARCH_ROOM_RUNTIME)
-    kapt(Deps.ARCH_ROOM_COMPILER)
-    implementation(Deps.TIMBER)
-    implementation(Deps.KOIN)
+    implementation("androidx.appcompat:appcompat:1.4.0")
+    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("androidx.legacy:legacy-support-v13:1.0.0")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.4.0-beta02")
+    implementation("androidx.navigation:navigation-ui-ktx:2.4.0-beta02")
+    implementation("androidx.room:room-runtime:2.4.0-rc01")
+    kapt("androidx.room:room-compiler:2.4.0-rc01")
+    implementation("com.jakewharton.timber:timber:5.0.1")
+    implementation("org.koin:koin-androidx-viewmodel:2.0.0")
 
-    testImplementation(Deps.TEST_JUNIT)
-    testImplementation(Deps.TEST_ARCH_ROOM_TESTING)
-    androidTestImplementation(Deps.TEST_ANDROIDX_RUNNER)
-    androidTestImplementation(Deps.TEST_ESPRESSO_CORE)
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.room:room-testing:2.4.0-rc01")
+    androidTestImplementation("androidx.test:runner:1.4.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 }
