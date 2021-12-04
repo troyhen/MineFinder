@@ -2,7 +2,7 @@ plugins {
     kotlin("android")
     kotlin("kapt")
     id("com.android.application")
-    id("kotlin-android-extensions")
+    id("kotlin-android-extensions") // synthetics
 }
 
 android {
@@ -25,21 +25,36 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    buildFeatures {
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = composeVersion
+    }
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KOTLIN_VERSION")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
 
     implementation("androidx.appcompat:appcompat:1.4.0")
+    implementation("androidx.activity:activity-compose:1.4.0")
+    implementation("androidx.compose.material:material:$composeVersion")
+    implementation("androidx.compose.ui:ui-tooling:$composeVersion")
+    implementation("androidx.compose.ui:ui:$composeVersion")
     implementation("androidx.core:core-ktx:1.7.0")
     implementation("androidx.legacy:legacy-support-v13:1.0.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0")
+
     implementation("androidx.navigation:navigation-fragment-ktx:2.4.0-beta02")
     implementation("androidx.navigation:navigation-ui-ktx:2.4.0-beta02")
     implementation("androidx.room:room-runtime:2.4.0-rc01")

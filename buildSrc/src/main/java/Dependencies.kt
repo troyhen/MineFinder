@@ -1,3 +1,2 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
-
-const val KOTLIN_VERSION = "1.5.31"
+const val composeVersion = "1.1.0-beta03"
+const val kotlinVersion = "1.5.31"
