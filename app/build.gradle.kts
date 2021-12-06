@@ -52,7 +52,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling:$composeVersion")
     implementation("androidx.compose.ui:ui:$composeVersion")
     implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.legacy:legacy-support-v13:1.0.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0")
 
     implementation("androidx.navigation:navigation-fragment-ktx:2.4.0-beta02")

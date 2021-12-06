@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Mine Finder</string>
+    <string name="app_name">Mine Finder Hex</string>
     <string name="app_description">A hexagonal version of the classic mine sweeper game</string>
     <string name="action_settings">Settings</string>
     <string name="action_zoom_in">Demo zoom in</string>
